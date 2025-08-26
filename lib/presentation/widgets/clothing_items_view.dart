@@ -10,7 +10,9 @@ class ClothingItemsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final clothingItemsAsync = ref.watch(activeClothingItemsProvider);
+    // Temporarily use simple provider to test
+    final clothingItemsAsync = ref.watch(simpleActiveClothingItemsProvider);
+    // final clothingItemsAsync = ref.watch(activeClothingItemsProvider);
 
     return Scaffold(
       body: clothingItemsAsync.when(
@@ -103,12 +105,38 @@ class ClothingItemsView extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8.0),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getCategoryColor(item.category),
-          child: Icon(
-            _getCategoryIcon(item.category),
-            color: Colors.white,
-          ),
+        leading: Stack(
+          children: [
+            CircleAvatar(
+              backgroundColor: _getCategoryColor(item.category),
+              child: Icon(
+                _getCategoryIcon(item.category),
+                color: Colors.white,
+              ),
+            ),
+            // Wear count badge
+            if (item.wearCount > 0)
+              Positioned(
+                right: 0,
+                top: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade600,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: Text(
+                    '${item.wearCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
         title: Text(
           item.name,
@@ -120,6 +148,24 @@ class ClothingItemsView extends ConsumerWidget {
             if (item.brand != null) Text('Brand: ${item.brand}'),
             if (item.color != null) Text('Color: ${item.color}'),
             if (item.subcategory != null) Text('Type: ${item.subcategory}'),
+            // Add wear count display
+            Row(
+              children: [
+                Icon(
+                  Icons.repeat,
+                  size: 16,
+                  color: Colors.blue.shade600,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Worn ${item.wearCount} time${item.wearCount == 1 ? '' : 's'}',
+                  style: TextStyle(
+                    color: Colors.blue.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         trailing: PopupMenuButton<String>(

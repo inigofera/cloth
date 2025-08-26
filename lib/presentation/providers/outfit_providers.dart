@@ -41,14 +41,11 @@ final activeOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
   
   return outfitsAsync.when(
     data: (outfits) {
-      // Ensure outfits is always a valid list
-      final validOutfits = outfits ?? <Outfit>[];
-      
       // Filter to show only recent outfits (last 30 days)
       final now = DateTime.now();
       final thirtyDaysAgo = now.subtract(const Duration(days: 30));
       
-      final activeOutfits = validOutfits.where((outfit) => 
+      final activeOutfits = outfits.where((outfit) => 
         outfit.date.isAfter(thirtyDaysAgo)
       ).toList();
       
@@ -81,8 +78,8 @@ class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
       state = const AsyncValue.loading();
       final outfits = await _repository.getAllOutfits();
       // Always ensure we have a valid list
-      state = AsyncValue.data(outfits ?? <Outfit>[]);
-    } catch (error, stack) {
+      state = AsyncValue.data(outfits);
+    } catch (error, _) {
       // If there's an error, return empty list instead of error state
       state = AsyncValue.data(<Outfit>[]);
     }
@@ -93,8 +90,8 @@ class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
       state = const AsyncValue.loading();
       await _repository.addOutfit(outfit);
       await _loadOutfits();
-    } catch (error, stack) {
-      state = AsyncValue.error(error, stack);
+    } catch (error, _) {
+      state = AsyncValue.error(error, StackTrace.current);
     }
   }
 
@@ -103,8 +100,8 @@ class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
       state = const AsyncValue.loading();
       await _repository.updateOutfit(outfit);
       await _loadOutfits();
-    } catch (error, stack) {
-      state = AsyncValue.error(error, stack);
+    } catch (error, _) {
+      state = AsyncValue.error(error, StackTrace.current);
     }
   }
 
@@ -113,8 +110,8 @@ class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
       state = const AsyncValue.loading();
       await _repository.deleteOutfit(id);
       await _loadOutfits();
-    } catch (error, stack) {
-      state = AsyncValue.error(error, stack);
+    } catch (error, _) {
+      state = AsyncValue.error(error, StackTrace.current);
     }
   }
 

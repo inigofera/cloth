@@ -41,5 +41,8 @@ abstract class OutfitRepository {
   
   /// Gets outfits by month and year
   Future<List<Outfit>> getOutfitsByMonth(int year, int month);
+  
+  /// Ensures all pending data is flushed to disk
+  Future<void> flush();
 }
 

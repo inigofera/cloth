@@ -98,4 +98,11 @@ abstract class ClothingItemRepository {
   
   /// Gets total value of all clothing items
   Future<double> getTotalClothingValue();
+  
+  /// Updates the wear count for clothing items based on outfit data
+  /// This method should be called when outfits are added, updated, or deleted
+  Future<void> updateWearCounts(Map<String, int> wearCountMap);
+  
+  /// Ensures all pending data is flushed to disk
+  Future<void> flush();
 }

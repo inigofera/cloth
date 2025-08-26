@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 import '../../domain/entities/outfit.dart';
 import '../../domain/repositories/outfit_repository.dart';
 import '../models/outfit_model.dart';
+import '../../core/services/logger_service.dart';
 
 /// Hive implementation of OutfitRepository
 /// Provides local storage with future cloud sync capabilities
@@ -24,14 +25,28 @@ class HiveOutfitRepository implements OutfitRepository {
 
   @override
   Future<void> addOutfit(Outfit outfit) async {
-    final model = OutfitModel.fromEntity(outfit);
-    await _box.put(outfit.id, model);
+    try {
+      final model = OutfitModel.fromEntity(outfit);
+      await _box.put(outfit.id, model);
+      await _ensureDataPersistence();
+      LoggerService.info('Outfit added successfully for date: ${outfit.date}');
+    } catch (e) {
+      LoggerService.error('Failed to add outfit: $e');
+      rethrow;
+    }
   }
 
   @override
   Future<void> updateOutfit(Outfit outfit) async {
-    final model = OutfitModel.fromEntity(outfit);
-    await _box.put(outfit.id, model);
+    try {
+      final model = OutfitModel.fromEntity(outfit);
+      await _box.put(outfit.id, model);
+      await _ensureDataPersistence();
+      LoggerService.info('Outfit updated successfully for date: ${outfit.date}');
+    } catch (e) {
+      LoggerService.error('Failed to update outfit: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -148,6 +163,20 @@ class HiveOutfitRepository implements OutfitRepository {
         )
         .map((model) => model.toEntity())
         .toList();
+  }
+
+  /// Ensures data is persisted to disk
+  Future<void> _ensureDataPersistence() async {
+    try {
+      await _box.flush();
+    } catch (e) {
+      LoggerService.error('Failed to flush data to disk: $e');
+    }
+  }
+  
+  @override
+  Future<void> flush() async {
+    await _ensureDataPersistence();
   }
 }
 

@@ -41,11 +41,13 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
 
   void _toggleClothingItem(String clothingItemId) {
     setState(() {
-      if (_selectedClothingItemIds.contains(clothingItemId)) {
-        _selectedClothingItemIds.remove(clothingItemId);
+      final newList = List<String>.from(_selectedClothingItemIds);
+      if (newList.contains(clothingItemId)) {
+        newList.remove(clothingItemId);
       } else {
-        _selectedClothingItemIds.add(clothingItemId);
+        newList.add(clothingItemId);
       }
+      _selectedClothingItemIds = newList;
     });
   }
 
@@ -213,4 +215,5 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
     }
   }
 }
+
 

@@ -25,6 +25,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         title: Text(_currentIndex == 0 ? 'Clothing Items' : 'Outfits'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        actions: const [],
       ),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(

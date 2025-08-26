@@ -64,6 +64,9 @@ class ClothingItemModel extends HiveObject {
   @HiveField(18)
   DateTime? lastSyncedAt; // For future cloud sync
 
+  @HiveField(19)
+  int wearCount; // total number of outfits containing this item
+
   ClothingItemModel({
     required this.id,
     required this.name,
@@ -84,6 +87,7 @@ class ClothingItemModel extends HiveObject {
     this.isActive = true,
     this.cloudId,
     this.lastSyncedAt,
+    this.wearCount = 0,
   });
 
   /// Converts domain entity to Hive model
@@ -108,6 +112,7 @@ class ClothingItemModel extends HiveObject {
       isActive: entity.isActive,
       cloudId: null, // Will be set when cloud sync is implemented
       lastSyncedAt: null, // Will be set when cloud sync is implemented
+      wearCount: entity.wearCount,
     );
   }
 
@@ -131,6 +136,7 @@ class ClothingItemModel extends HiveObject {
       createdAt: createdAt,
       updatedAt: updatedAt,
       isActive: isActive,
+      wearCount: wearCount,
     );
   }
 
@@ -152,6 +158,7 @@ class ClothingItemModel extends HiveObject {
     bool? isActive,
     String? cloudId,
     DateTime? lastSyncedAt,
+    int? wearCount,
   }) {
     return ClothingItemModel(
       id: id,
@@ -173,6 +180,7 @@ class ClothingItemModel extends HiveObject {
       isActive: isActive ?? this.isActive,
       cloudId: cloudId ?? this.cloudId,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      wearCount: wearCount ?? this.wearCount,
     );
   }
 

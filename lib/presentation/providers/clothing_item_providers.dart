@@ -3,6 +3,7 @@ import '../../core/di/dependency_injection.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../../domain/usecases/clothing_item_usecases.dart';
 import '../../domain/repositories/clothing_item_repository.dart';
+import '../../core/services/logger_service.dart';
 
 /// Provider for clothing item use cases
 final clothingItemUseCasesProvider = Provider<ClothingItemUseCases>((ref) {
@@ -19,16 +20,44 @@ final clothingItemUseCasesProvider = Provider<ClothingItemUseCases>((ref) {
   );
 });
 
+/// Provider for all active clothing items (direct repository call)
+final simpleActiveClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
+  try {
+    // Direct repository call without use case
+    final repository = getIt<ClothingItemRepository>();
+    final items = await repository.getActiveClothingItems();
+    LoggerService.debug('Simple provider: Retrieved ${items.length} active items');
+    return items;
+  } catch (e) {
+    LoggerService.error('Simple provider error: $e');
+    return <ClothingItem>[];
+  }
+});
+
+/// Provider for all clothing items (including inactive)
+final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
+  try {
+    // Direct repository call for all items
+    final repository = getIt<ClothingItemRepository>();
+    final items = await repository.getAllClothingItems();
+    LoggerService.debug('All items provider: Retrieved ${items.length} total items');
+    return items;
+  } catch (e) {
+    LoggerService.error('All items provider error: $e');
+    return <ClothingItem>[];
+  }
+});
+
 /// Provider for all active clothing items
 final activeClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
   try {
-    final useCases = ref.read(clothingItemUseCasesProvider);
-    // Use a more direct method to get active items
-    final repository = getIt<ClothingItemRepository>();
-    final items = await repository.getActiveClothingItems();
-    // Always return a valid list
-    return items ?? <ClothingItem>[];
+    // Use the new use case that includes wear count
+    final useCase = getIt<GetClothingItemsWithWearCountUseCase>();
+    final items = await useCase.execute();
+    LoggerService.debug('Complex provider: Retrieved ${items.length} active items');
+    return items;
   } catch (e) {
+    LoggerService.error('Complex provider error: $e');
     // If there's an error, return empty list instead of throwing
     return <ClothingItem>[];
   }
@@ -36,8 +65,9 @@ final activeClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) asy
 
 /// Provider for clothing items by category
 final clothingItemsByCategoryProvider = FutureProvider.family<List<ClothingItem>, String>((ref, category) async {
-  final useCases = ref.read(clothingItemUseCasesProvider);
-  return await useCases.getClothingItemsByCategory.execute(category);
+  // Use the new use case that includes wear count
+  final useCase = getIt<GetClothingItemsByCategoryWithWearCountUseCase>();
+  return await useCase.execute(category);
 });
 
 /// Provider for clothing items by season
@@ -61,8 +91,9 @@ final unwornClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) asy
 
 /// Provider for most worn clothing items
 final mostWornClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
-  final useCases = ref.read(clothingItemUseCasesProvider);
-  return await useCases.getMostWornClothingItems.execute(limit: 10);
+  // Use the new use case that includes actual wear count
+  final useCase = getIt<GetMostWornClothingItemsWithWearCountUseCase>();
+  return await useCase.execute(limit: 10);
 });
 
 /// Provider for clothing item search
@@ -123,8 +154,10 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       await _useCases.addClothingItem.execute(item);
       state = const AsyncValue.data(null);
-      // Invalidate the activeClothingItemsProvider to refresh the UI
+      // Invalidate all relevant providers to refresh the UI
       _ref.invalidate(activeClothingItemsProvider);
+      _ref.invalidate(simpleActiveClothingItemsProvider);
+      _ref.invalidate(allClothingItemsProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -136,8 +169,10 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       await _useCases.updateClothingItem.execute(item);
       state = const AsyncValue.data(null);
-      // Invalidate the activeClothingItemsProvider to refresh the UI
+      // Invalidate all relevant providers to refresh the UI
       _ref.invalidate(activeClothingItemsProvider);
+      _ref.invalidate(simpleActiveClothingItemsProvider);
+      _ref.invalidate(allClothingItemsProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -149,8 +184,10 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       await _useCases.deleteClothingItem.execute(id);
       state = const AsyncValue.data(null);
-      // Invalidate the activeClothingItemsProvider to refresh the UI
+      // Invalidate all relevant providers to refresh the UI
       _ref.invalidate(activeClothingItemsProvider);
+      _ref.invalidate(simpleActiveClothingItemsProvider);
+      _ref.invalidate(allClothingItemsProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }

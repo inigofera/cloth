@@ -1,36 +1,61 @@
 import '../entities/outfit.dart';
 import '../repositories/outfit_repository.dart';
+import '../repositories/clothing_item_repository.dart';
 
 /// Use case for adding a new outfit
 class AddOutfitUseCase {
-  final OutfitRepository _repository;
+  final OutfitRepository _outfitRepository;
+  final ClothingItemRepository _clothingItemRepository;
 
-  AddOutfitUseCase(this._repository);
+  AddOutfitUseCase(this._outfitRepository, this._clothingItemRepository);
 
   Future<void> execute(Outfit outfit) async {
-    await _repository.addOutfit(outfit);
+    await _outfitRepository.addOutfit(outfit);
+    // Update wear counts after adding outfit
+    await _updateWearCounts();
+  }
+  
+  Future<void> _updateWearCounts() async {
+    final wearCountMap = await _outfitRepository.getClothingItemWearCount();
+    await _clothingItemRepository.updateWearCounts(wearCountMap);
   }
 }
 
 /// Use case for updating an existing outfit
 class UpdateOutfitUseCase {
-  final OutfitRepository _repository;
+  final OutfitRepository _outfitRepository;
+  final ClothingItemRepository _clothingItemRepository;
 
-  UpdateOutfitUseCase(this._repository);
+  UpdateOutfitUseCase(this._outfitRepository, this._clothingItemRepository);
 
   Future<void> execute(Outfit outfit) async {
-    await _repository.updateOutfit(outfit);
+    await _outfitRepository.updateOutfit(outfit);
+    // Update wear counts after updating outfit
+    await _updateWearCounts();
+  }
+  
+  Future<void> _updateWearCounts() async {
+    final wearCountMap = await _outfitRepository.getClothingItemWearCount();
+    await _clothingItemRepository.updateWearCounts(wearCountMap);
   }
 }
 
 /// Use case for deleting an outfit
 class DeleteOutfitUseCase {
-  final OutfitRepository _repository;
+  final OutfitRepository _outfitRepository;
+  final ClothingItemRepository _clothingItemRepository;
 
-  DeleteOutfitUseCase(this._repository);
+  DeleteOutfitUseCase(this._outfitRepository, this._clothingItemRepository);
 
   Future<void> execute(String id) async {
-    await _repository.deleteOutfit(id);
+    await _outfitRepository.deleteOutfit(id);
+    // Update wear counts after deleting outfit
+    await _updateWearCounts();
+  }
+  
+  Future<void> _updateWearCounts() async {
+    final wearCountMap = await _outfitRepository.getClothingItemWearCount();
+    await _clothingItemRepository.updateWearCounts(wearCountMap);
   }
 }
 

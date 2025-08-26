@@ -1,5 +1,6 @@
 import '../entities/clothing_item.dart';
 import '../repositories/clothing_item_repository.dart';
+import '../repositories/outfit_repository.dart';
 
 /// Use case for adding a new clothing item
 class AddClothingItemUseCase {
@@ -164,4 +165,83 @@ class ClothingItemStatistics {
     required this.colors,
     required this.seasons,
   });
+}
+
+/// Use case for getting clothing items with wear count
+class GetClothingItemsWithWearCountUseCase {
+  final ClothingItemRepository _clothingItemRepository;
+  final OutfitRepository _outfitRepository;
+
+  const GetClothingItemsWithWearCountUseCase(
+    this._clothingItemRepository,
+    this._outfitRepository,
+  );
+
+  Future<List<ClothingItem>> execute() async {
+    // Get all active clothing items
+    final clothingItems = await _clothingItemRepository.getActiveClothingItems();
+    
+    // Get wear count for all clothing items
+    final wearCountMap = await _outfitRepository.getClothingItemWearCount();
+    
+    // Update clothing items with their wear count
+    return clothingItems.map((item) {
+      final wearCount = wearCountMap[item.id] ?? 0;
+      return item.copyWith(wearCount: wearCount);
+    }).toList();
+  }
+}
+
+/// Use case for getting clothing items by category with wear count
+class GetClothingItemsByCategoryWithWearCountUseCase {
+  final ClothingItemRepository _clothingItemRepository;
+  final OutfitRepository _outfitRepository;
+
+  const GetClothingItemsByCategoryWithWearCountUseCase(
+    this._clothingItemRepository,
+    this._outfitRepository,
+  );
+
+  Future<List<ClothingItem>> execute(String category) async {
+    // Get clothing items by category
+    final clothingItems = await _clothingItemRepository.getClothingItemsByCategory(category);
+    
+    // Get wear count for all clothing items
+    final wearCountMap = await _outfitRepository.getClothingItemWearCount();
+    
+    // Update clothing items with their wear count
+    return clothingItems.map((item) {
+      final wearCount = wearCountMap[item.id] ?? 0;
+      return item.copyWith(wearCount: wearCount);
+    }).toList();
+  }
+}
+
+/// Use case for getting most worn clothing items with actual wear count
+class GetMostWornClothingItemsWithWearCountUseCase {
+  final ClothingItemRepository _clothingItemRepository;
+  final OutfitRepository _outfitRepository;
+
+  const GetMostWornClothingItemsWithWearCountUseCase(
+    this._clothingItemRepository,
+    this._outfitRepository,
+  );
+
+  Future<List<ClothingItem>> execute({int limit = 10}) async {
+    // Get all active clothing items
+    final clothingItems = await _clothingItemRepository.getActiveClothingItems();
+    
+    // Get wear count for all clothing items
+    final wearCountMap = await _outfitRepository.getClothingItemWearCount();
+    
+    // Update clothing items with their wear count and sort by wear count
+    final itemsWithWearCount = clothingItems.map((item) {
+      final wearCount = wearCountMap[item.id] ?? 0;
+      return item.copyWith(wearCount: wearCount);
+    }).toList();
+    
+    // Sort by wear count (descending) and take the limit
+    itemsWithWearCount.sort((a, b) => b.wearCount.compareTo(a.wearCount));
+    return itemsWithWearCount.take(limit).toList();
+  }
 }

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
-import 'clothing_item.dart';
 
 /// Represents an outfit worn on a specific day
 class Outfit extends Equatable {

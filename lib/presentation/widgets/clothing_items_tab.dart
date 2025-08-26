@@ -81,6 +81,24 @@ class ClothingItemsView extends ConsumerWidget {
                 if (item.materials != null) Text('Materials: ${item.materials}'),
                 if (item.purchasePrice != null) Text('Price: \$${item.purchasePrice!.toStringAsFixed(2)}'),
                 if (item.origin != null) Text('Origin: ${item.origin}'),
+                // Add wear count display
+                Row(
+                  children: [
+                    Icon(
+                      Icons.repeat,
+                      size: 16,
+                      color: Colors.blue.shade600,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Worn ${item.wearCount} time${item.wearCount == 1 ? '' : 's'}',
+                      style: TextStyle(
+                        color: Colors.blue.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
             trailing: PopupMenuButton<String>(

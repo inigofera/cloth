@@ -20,6 +20,7 @@ class ClothingItem extends Equatable {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isActive; // for soft deletion
+  final int wearCount; // total number of outfits containing this item
 
   const ClothingItem({
     required this.id,
@@ -39,6 +40,7 @@ class ClothingItem extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     this.isActive = true,
+    this.wearCount = 0,
   });
 
   /// Creates a new ClothingItem with a generated ID
@@ -76,6 +78,7 @@ class ClothingItem extends Equatable {
       createdAt: now,
       updatedAt: now,
       isActive: true,
+      wearCount: 0,
     );
   }
 
@@ -98,6 +101,7 @@ class ClothingItem extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isActive,
+    int? wearCount,
   }) {
     return ClothingItem(
       id: id ?? this.id,
@@ -117,6 +121,7 @@ class ClothingItem extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isActive: isActive ?? this.isActive,
+      wearCount: wearCount ?? this.wearCount,
     );
   }
 
@@ -153,5 +158,6 @@ class ClothingItem extends Equatable {
         createdAt,
         updatedAt,
         isActive,
+        wearCount,
       ];
 }

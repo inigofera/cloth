@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../../domain/repositories/clothing_item_repository.dart';
 import '../models/clothing_item_model.dart';
+import '../../core/services/logger_service.dart';
 
 /// Hive implementation of ClothingItemRepository
 /// Provides local storage with future cloud sync capabilities
@@ -24,14 +25,42 @@ class HiveClothingItemRepository implements ClothingItemRepository {
 
   @override
   Future<void> addClothingItem(ClothingItem item) async {
-    final model = ClothingItemModel.fromEntity(item);
-    await _box.put(item.id, model);
+    try {
+      final model = ClothingItemModel.fromEntity(item);
+      await _box.put(item.id, model);
+      await _ensureDataPersistence();
+      LoggerService.info('Clothing item added successfully: ${item.name}');
+    } catch (e) {
+      LoggerService.error('Failed to add clothing item: $e');
+      rethrow;
+    }
   }
 
   @override
   Future<void> updateClothingItem(ClothingItem item) async {
-    final model = ClothingItemModel.fromEntity(item);
-    await _box.put(item.id, model);
+    try {
+      final model = ClothingItemModel.fromEntity(item);
+      await _box.put(item.id, model);
+      await _ensureDataPersistence();
+      LoggerService.info('Clothing item updated successfully: ${item.name}');
+    } catch (e) {
+      LoggerService.error('Failed to update clothing item: $e');
+      rethrow;
+    }
+  }
+
+  /// Ensures data is persisted to disk
+  Future<void> _ensureDataPersistence() async {
+    try {
+      await _box.flush();
+    } catch (e) {
+      LoggerService.error('Failed to flush data to disk: $e');
+    }
+  }
+  
+  @override
+  Future<void> flush() async {
+    await _ensureDataPersistence();
   }
 
   @override
@@ -51,15 +80,47 @@ class HiveClothingItemRepository implements ClothingItemRepository {
 
   @override
   Future<List<ClothingItem>> getAllClothingItems() async {
-    return _box.values.map((model) => model.toEntity()).toList();
+    try {
+      LoggerService.debug('Repository: Getting ALL clothing items');
+      LoggerService.debug('Repository: Box length: ${_box.length}');
+      LoggerService.debug('Repository: Box keys: ${_box.keys.toList()}');
+      
+      final allItems = _box.values.map((model) => model.toEntity()).toList();
+      
+      LoggerService.debug('Repository: Found ${allItems.length} total items');
+      for (final item in allItems) {
+        LoggerService.debug('Repository: Item: ${item.name} (ID: ${item.id}, Active: ${item.isActive})');
+      }
+      
+      return allItems;
+    } catch (e) {
+      LoggerService.error('Repository: Error getting all items: $e');
+      return [];
+    }
   }
 
   @override
   Future<List<ClothingItem>> getActiveClothingItems() async {
-    return _box.values
-        .where((model) => model.isActive)
-        .map((model) => model.toEntity())
-        .toList();
+    try {
+      LoggerService.debug('Repository: Getting active clothing items');
+      LoggerService.debug('Repository: Box length: ${_box.length}');
+      LoggerService.debug('Repository: Box keys: ${_box.keys.toList()}');
+      
+      final activeItems = _box.values
+          .where((model) => model.isActive)
+          .map((model) => model.toEntity())
+          .toList();
+      
+      LoggerService.debug('Repository: Found ${activeItems.length} active items');
+      for (final item in activeItems) {
+        LoggerService.debug('Repository: Active item: ${item.name} (ID: ${item.id}, Active: ${item.isActive})');
+      }
+      
+      return activeItems;
+    } catch (e) {
+      LoggerService.error('Repository: Error getting active items: $e');
+      return [];
+    }
   }
 
   @override
@@ -190,6 +251,20 @@ class HiveClothingItemRepository implements ClothingItemRepository {
       }
     }
     return total;
+  }
+
+  @override
+  Future<void> updateWearCounts(Map<String, int> wearCountMap) async {
+    // Update wear count for all clothing items
+    for (final model in _box.values) {
+      if (model.isActive) {
+        final newWearCount = wearCountMap[model.id] ?? 0;
+        if (model.wearCount != newWearCount) {
+          model.wearCount = newWearCount;
+          await _box.put(model.id, model);
+        }
+      }
+    }
   }
 
   @override
