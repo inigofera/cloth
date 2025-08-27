@@ -5,11 +5,19 @@ import '../../domain/entities/clothing_item.dart';
 import 'add_clothing_item_form.dart';
 
 /// Main view for displaying and managing clothing items
-class ClothingItemsView extends ConsumerWidget {
+class ClothingItemsView extends ConsumerStatefulWidget {
   const ClothingItemsView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ClothingItemsView> createState() => _ClothingItemsViewState();
+}
+
+class _ClothingItemsViewState extends ConsumerState<ClothingItemsView> {
+  // Track which categories are expanded
+  final Set<String> _expandedCategories = <String>{};
+
+  @override
+  Widget build(BuildContext context) {
     final clothingItemsAsync = ref.watch(activeClothingItemsProvider);
     final currentSortOption = ref.watch(clothingItemsSortOptionProvider);
 
@@ -17,6 +25,31 @@ class ClothingItemsView extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Clothing Items'),
         actions: [
+          // Expand/Collapse all button
+          IconButton(
+            icon: Icon(
+              _expandedCategories.isEmpty ? Icons.unfold_more : Icons.unfold_less,
+            ),
+            onPressed: () {
+              if (_expandedCategories.isEmpty) {
+                // Expand all categories
+                clothingItemsAsync.whenData((items) {
+                  if (items.isNotEmpty) {
+                    final categories = _getCategoriesFromItems(items);
+                    setState(() {
+                      _expandedCategories.addAll(categories);
+                    });
+                  }
+                });
+              } else {
+                // Collapse all categories
+                setState(() {
+                  _expandedCategories.clear();
+                });
+              }
+            },
+            tooltip: _expandedCategories.isEmpty ? 'Expand all categories' : 'Collapse all categories',
+          ),
           // Sorting dropdown
           PopupMenuButton<SortOption>(
             icon: const Icon(Icons.sort),
@@ -151,34 +184,90 @@ class ClothingItemsView extends ConsumerWidget {
   }
 
   Widget _buildCategorySection(BuildContext context, WidgetRef ref, String category, List<ClothingItem> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Text(
-            category.toUpperCase(),
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+    final isExpanded = _expandedCategories.contains(category);
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12.0),
+      child: Column(
+        children: [
+          // Category header that's always clickable
+          InkWell(
+            onTap: () {
+              setState(() {
+                                 if (isExpanded) {
+                   _expandedCategories.remove(category);
+                 } else {
+                   _expandedCategories.add(category);
+                 }
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: _getCategoryColor(category),
+                    child: Icon(
+                      _getCategoryIcon(category),
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          category.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Text(
+                          '${items.length} item${items.length == 1 ? '' : 's'}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.expand_less : Icons.expand_more,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        ...items.map((item) => _buildClothingItemCard(context, ref, item)),
-      ],
+          // Expandable content
+          if (isExpanded)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Column(
+                children: items.map((item) => _buildClothingItemCard(context, ref, item)).toList(),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
   Widget _buildClothingItemCard(BuildContext context, WidgetRef ref, ClothingItem item) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 8.0),
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      elevation: 2,
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         leading: CircleAvatar(
           backgroundColor: _getCategoryColor(item.category),
           child: Icon(
             _getCategoryIcon(item.category),
             color: Colors.white,
+            size: 20,
           ),
         ),
         title: Text(
@@ -188,30 +277,65 @@ class ClothingItemsView extends ConsumerWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (item.brand != null) Text('Brand: ${item.brand}'),
-            if (item.color != null) Text('Color: ${item.color}'),
-            if (item.subcategory != null) Text('Type: ${item.subcategory}'),
+            if (item.brand != null) 
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.branding_watermark, size: 14, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text('Brand: ${item.brand}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  ],
+                ),
+              ),
+            if (item.color != null) 
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.palette, size: 14, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text('Color: ${item.color}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  ],
+                ),
+              ),
+            if (item.subcategory != null) 
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.category, size: 14, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text('Type: ${item.subcategory}', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  ],
+                ),
+              ),
             // Add wear count display
-            Row(
-              children: [
-                Icon(
-                  Icons.repeat,
-                  size: 16,
-                  color: Colors.blue.shade600,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'Worn ${item.wearCount} time${item.wearCount == 1 ? '' : 's'}',
-                  style: TextStyle(
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.repeat,
+                    size: 14,
                     color: Colors.blue.shade600,
-                    fontWeight: FontWeight.w500,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4),
+                  Text(
+                    'Worn ${item.wearCount} time${item.wearCount == 1 ? '' : 's'}',
+                    style: TextStyle(
+                      color: Colors.blue.shade600,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
         trailing: PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, size: 20),
           onSelected: (value) {
             if (value == 'edit') {
               // TODO: Implement edit functionality
@@ -301,5 +425,10 @@ class ClothingItemsView extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Get unique categories from items
+  Set<String> _getCategoriesFromItems(List<ClothingItem> items) {
+    return items.map((item) => item.category).toSet();
   }
 }
