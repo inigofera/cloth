@@ -247,7 +247,10 @@ class OutfitsView extends ConsumerWidget {
                 // Trigger a refresh of the clothing items by invalidating the provider
                 ref.invalidate(activeClothingItemsProvider);
                 
-                Navigator.of(context).pop();
+                // Check if the widget is still mounted before using context
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
               },
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),

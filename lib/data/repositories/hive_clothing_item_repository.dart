@@ -81,17 +81,7 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   @override
   Future<List<ClothingItem>> getAllClothingItems() async {
     try {
-      LoggerService.debug('Repository: Getting ALL clothing items');
-      LoggerService.debug('Repository: Box length: ${_box.length}');
-      LoggerService.debug('Repository: Box keys: ${_box.keys.toList()}');
-      
       final allItems = _box.values.map((model) => model.toEntity()).toList();
-      
-      LoggerService.debug('Repository: Found ${allItems.length} total items');
-      for (final item in allItems) {
-        LoggerService.debug('Repository: Item: ${item.name} (ID: ${item.id}, Active: ${item.isActive})');
-      }
-      
       return allItems;
     } catch (e) {
       LoggerService.error('Repository: Error getting all items: $e');
@@ -102,19 +92,10 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   @override
   Future<List<ClothingItem>> getActiveClothingItems() async {
     try {
-      LoggerService.debug('Repository: Getting active clothing items');
-      LoggerService.debug('Repository: Box length: ${_box.length}');
-      LoggerService.debug('Repository: Box keys: ${_box.keys.toList()}');
-      
       final activeItems = _box.values
           .where((model) => model.isActive)
           .map((model) => model.toEntity())
           .toList();
-      
-      LoggerService.debug('Repository: Found ${activeItems.length} active items');
-      for (final item in activeItems) {
-        LoggerService.debug('Repository: Active item: ${item.name} (ID: ${item.id}, Active: ${item.isActive})');
-      }
       
       return activeItems;
     } catch (e) {
@@ -235,11 +216,19 @@ class HiveClothingItemRepository implements ClothingItemRepository {
 
   @override
   Future<List<ClothingItem>> getMostWornClothingItems({int limit = 10}) async {
-    // This would need to be implemented with outfit data
-    // For now, return recent items
-    final items = await getActiveClothingItems();
-    items.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-    return items.take(limit).toList();
+    try {
+      final items = await getActiveClothingItems();
+      // Sort by wear count (highest first), then by name for tiebreakers
+      items.sort((a, b) {
+        final wearCountComparison = b.wearCount.compareTo(a.wearCount);
+        if (wearCountComparison != 0) return wearCountComparison;
+        return a.name.compareTo(b.name);
+      });
+      return items.take(limit).toList();
+    } catch (e) {
+      LoggerService.error('Failed to get most worn clothing items: $e');
+      return [];
+    }
   }
 
   @override

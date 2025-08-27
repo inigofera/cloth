@@ -26,7 +26,6 @@ final simpleActiveClothingItemsProvider = FutureProvider<List<ClothingItem>>((re
     // Direct repository call without use case
     final repository = getIt<ClothingItemRepository>();
     final items = await repository.getActiveClothingItems();
-    LoggerService.debug('Simple provider: Retrieved ${items.length} active items');
     return items;
   } catch (e) {
     LoggerService.error('Simple provider error: $e');
@@ -40,7 +39,6 @@ final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async 
     // Direct repository call for all items
     final repository = getIt<ClothingItemRepository>();
     final items = await repository.getAllClothingItems();
-    LoggerService.debug('All items provider: Retrieved ${items.length} total items');
     return items;
   } catch (e) {
     LoggerService.error('All items provider error: $e');
@@ -54,7 +52,6 @@ final activeClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) asy
     // Use the new use case that includes wear count
     final useCase = getIt<GetClothingItemsWithWearCountUseCase>();
     final items = await useCase.execute();
-    LoggerService.debug('Complex provider: Retrieved ${items.length} active items');
     return items;
   } catch (e) {
     LoggerService.error('Complex provider error: $e');
@@ -91,9 +88,15 @@ final unwornClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) asy
 
 /// Provider for most worn clothing items
 final mostWornClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
-  // Use the new use case that includes actual wear count
-  final useCase = getIt<GetMostWornClothingItemsWithWearCountUseCase>();
-  return await useCase.execute(limit: 10);
+  try {
+    // Use the use case that properly calculates wear counts from outfit data
+    final useCase = getIt<GetMostWornClothingItemsWithWearCountUseCase>();
+    final items = await useCase.execute(limit: 10);
+    return items;
+  } catch (e) {
+    LoggerService.error('Most worn provider error: $e');
+    return <ClothingItem>[];
+  }
 });
 
 /// Provider for clothing item search
