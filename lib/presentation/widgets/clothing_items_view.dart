@@ -10,13 +10,67 @@ class ClothingItemsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Temporarily use simple provider to test
-    final clothingItemsAsync = ref.watch(simpleActiveClothingItemsProvider);
-    // final clothingItemsAsync = ref.watch(activeClothingItemsProvider);
+    final clothingItemsAsync = ref.watch(activeClothingItemsProvider);
+    final currentSortOption = ref.watch(clothingItemsSortOptionProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Clothing Items'),
+        actions: [
+          // Sorting dropdown
+          PopupMenuButton<SortOption>(
+            icon: const Icon(Icons.sort),
+            tooltip: 'Sort items',
+            onSelected: (SortOption option) {
+              // Update the provider instead of local state
+              ref.read(clothingItemsSortOptionProvider.notifier).state = option;
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<SortOption>(
+                value: SortOption.alphabetical,
+                child: Row(
+                  children: [
+                    Icon(Icons.sort_by_alpha),
+                    SizedBox(width: 8),
+                    Text('Sort Alphabetically'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<SortOption>(
+                value: SortOption.wearCountAscending,
+                child: Row(
+                  children: [
+                    Icon(Icons.trending_up),
+                    SizedBox(width: 8),
+                    Text('Sort by Wears (Low to High)'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<SortOption>(
+                value: SortOption.wearCountDescending,
+                child: Row(
+                  children: [
+                    Icon(Icons.trending_down),
+                    SizedBox(width: 8),
+                    Text('Sort by Wears (High to Low)'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          // Refresh button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              // Trigger a refresh by invalidating the provider
+              ref.invalidate(activeClothingItemsProvider);
+            },
+            tooltip: 'Refresh wear counts',
+          ),
+        ],
+      ),
       body: clothingItemsAsync.when(
-        data: (items) => _buildContent(context, ref, items),
+        data: (items) => _buildContent(context, ref, items, currentSortOption),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),
@@ -33,7 +87,7 @@ class ClothingItemsView extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, List<ClothingItem> items) {
+  Widget _buildContent(BuildContext context, WidgetRef ref, List<ClothingItem> items, SortOption currentSortOption) {
     if (items.isEmpty) {
       return const Center(
         child: Column(
@@ -63,9 +117,12 @@ class ClothingItemsView extends ConsumerWidget {
       );
     }
 
+    // Sort items based on current sort option
+    final sortedItems = _sortItems(items, currentSortOption);
+
     // Group items by category
     final groupedItems = <String, List<ClothingItem>>{};
-    for (final item in items) {
+    for (final item in sortedItems) {
       groupedItems.putIfAbsent(item.category, () => []).add(item);
     }
 
@@ -79,6 +136,18 @@ class ClothingItemsView extends ConsumerWidget {
         return _buildCategorySection(context, ref, category, categoryItems);
       },
     );
+  }
+
+  /// Sort items based on the current sort option
+  List<ClothingItem> _sortItems(List<ClothingItem> items, SortOption sortOption) {
+    switch (sortOption) {
+      case SortOption.alphabetical:
+        return List.from(items)..sort((a, b) => a.name.compareTo(b.name));
+      case SortOption.wearCountAscending:
+        return List.from(items)..sort((a, b) => a.wearCount.compareTo(b.wearCount));
+      case SortOption.wearCountDescending:
+        return List.from(items)..sort((a, b) => b.wearCount.compareTo(a.wearCount));
+    }
   }
 
   Widget _buildCategorySection(BuildContext context, WidgetRef ref, String category, List<ClothingItem> items) {
@@ -105,38 +174,12 @@ class ClothingItemsView extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8.0),
       child: ListTile(
-        leading: Stack(
-          children: [
-            CircleAvatar(
-              backgroundColor: _getCategoryColor(item.category),
-              child: Icon(
-                _getCategoryIcon(item.category),
-                color: Colors.white,
-              ),
-            ),
-            // Wear count badge
-            if (item.wearCount > 0)
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade600,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: Text(
-                    '${item.wearCount}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-          ],
+        leading: CircleAvatar(
+          backgroundColor: _getCategoryColor(item.category),
+          child: Icon(
+            _getCategoryIcon(item.category),
+            color: Colors.white,
+          ),
         ),
         title: Text(
           item.name,

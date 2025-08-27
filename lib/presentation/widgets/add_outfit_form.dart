@@ -71,6 +71,9 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
 
         await ref.read(outfitNotifierProvider.notifier).addOutfit(outfit);
         
+        // Trigger a refresh of the clothing items by invalidating the provider
+        ref.invalidate(activeClothingItemsProvider);
+        
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Outfit logged successfully!')),

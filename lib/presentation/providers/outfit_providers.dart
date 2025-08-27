@@ -3,6 +3,8 @@ import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../../data/repositories/hive_outfit_repository.dart';
 import '../../data/repositories/hive_clothing_item_repository.dart';
+import '../../core/services/logger_service.dart';
+import 'clothing_item_providers.dart';
 
 /// Provider for the outfit repository
 final outfitRepositoryProvider = Provider<HiveOutfitRepository>((ref) {

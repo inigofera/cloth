@@ -241,8 +241,12 @@ class OutfitsView extends ConsumerWidget {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                ref.read(outfitNotifierProvider.notifier).deleteOutfit(outfit.id);
+              onPressed: () async {
+                await ref.read(outfitNotifierProvider.notifier).deleteOutfit(outfit.id);
+                
+                // Trigger a refresh of the clothing items by invalidating the provider
+                ref.invalidate(activeClothingItemsProvider);
+                
                 Navigator.of(context).pop();
               },
               child: const Text('Delete', style: TextStyle(color: Colors.red)),

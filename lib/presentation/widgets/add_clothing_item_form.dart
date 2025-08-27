@@ -90,41 +90,25 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final clothingItem = ClothingItem.create(
+        final item = ClothingItem.create(
           name: _nameController.text.trim(),
           category: _categoryController.text.trim(),
-          subcategory: _subcategoryController.text.trim().isEmpty 
+          subcategory: _subcategoryController.text.trim().isEmpty ? null : _subcategoryController.text.trim(),
+          brand: _brandController.text.trim().isEmpty ? null : _brandController.text.trim(),
+          color: _colorController.text.trim().isEmpty ? null : _colorController.text.trim(),
+          materials: _materialsController.text.trim().isEmpty ? null : _materialsController.text.trim(),
+          season: _seasonController.text.trim().isEmpty ? null : _seasonController.text.trim(),
+          purchasePrice: _purchasePriceController.text.trim().isEmpty 
               ? null 
-              : _subcategoryController.text.trim(),
-          brand: _brandController.text.trim().isEmpty 
-              ? null 
-              : _brandController.text.trim(),
-          color: _colorController.text.trim().isEmpty 
-              ? null 
-              : _colorController.text.trim(),
-          materials: _materialsController.text.trim().isEmpty 
-              ? null 
-              : _materialsController.text.trim(),
-          season: _seasonController.text.trim().isEmpty 
-              ? null 
-              : _seasonController.text.trim(),
-          purchasePrice: _purchasePriceController.text.isEmpty 
-              ? null 
-              : double.tryParse(_purchasePriceController.text),
+              : double.tryParse(_purchasePriceController.text.trim()),
           ownedSince: _ownedSince,
-          origin: _originController.text.trim().isEmpty 
-              ? null 
-              : _originController.text.trim(),
-          laundryImpact: _laundryImpactController.text.trim().isEmpty 
-              ? null 
-              : _laundryImpactController.text.trim(),
+          origin: _originController.text.trim().isEmpty ? null : _originController.text.trim(),
+          laundryImpact: _laundryImpactController.text.trim().isEmpty ? null : _laundryImpactController.text.trim(),
           repairable: _repairable,
-          notes: _notesController.text.trim().isEmpty 
-              ? null 
-              : _notesController.text.trim(),
+          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
         );
 
-        await ref.read(clothingItemNotifierProvider.notifier).addClothingItem(clothingItem);
+        await ref.read(clothingItemNotifierProvider.notifier).addClothingItem(item);
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

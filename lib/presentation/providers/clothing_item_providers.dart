@@ -141,6 +141,23 @@ final totalClothingValueProvider = FutureProvider<double>((ref) async {
   return statistics.totalValue;
 });
 
+/// Simple provider that can be triggered to refresh wear count providers
+/// Increment this value to trigger a refresh
+final wearCountRefreshTriggerProvider = StateProvider<int>((ref) => 0);
+
+/// Provider to store the current sorting option for clothing items
+/// This ensures the sorting preference persists across tab switches
+final clothingItemsSortOptionProvider = StateProvider<SortOption>((ref) => SortOption.alphabetical);
+
+/// Enum for sorting options
+enum SortOption {
+  alphabetical,
+  wearCountAscending,
+  wearCountDescending,
+}
+
+/// Provider for all active clothing items with wear count that refreshes when triggered
+
 /// Notifier for managing clothing item operations
 class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
   final ClothingItemUseCases _useCases;
