@@ -1,6 +1,7 @@
 import '../entities/clothing_item.dart';
 import '../repositories/clothing_item_repository.dart';
 import '../repositories/outfit_repository.dart';
+import '../../core/services/logger_service.dart';
 
 /// Use case for adding a new clothing item
 class AddClothingItemUseCase {
@@ -243,5 +244,71 @@ class GetMostWornClothingItemsWithWearCountUseCase {
     // Sort by wear count (descending) and take the limit
     itemsWithWearCount.sort((a, b) => b.wearCount.compareTo(a.wearCount));
     return itemsWithWearCount.take(limit).toList();
+  }
+}
+
+/// Use case for getting clothing items ranked by cost per wear
+class GetClothingItemsByCostPerWearUseCase {
+  final ClothingItemRepository _clothingItemRepository;
+  final OutfitRepository _outfitRepository;
+
+  const GetClothingItemsByCostPerWearUseCase(
+    this._clothingItemRepository,
+    this._outfitRepository,
+  );
+
+  Future<List<ClothingItem>> execute({
+    required List<String> categories,
+    required bool ascending,
+    int limit = 10,
+  }) async {
+    try {
+      // Get all active clothing items
+      final allClothingItems = await _clothingItemRepository.getActiveClothingItems();
+      
+      // Filter by selected categories if any are specified
+      final filteredItems = categories.isEmpty 
+          ? allClothingItems 
+          : allClothingItems.where((item) => categories.contains(item.category)).toList();
+      
+      // Get wear count for all clothing items
+      final wearCountMap = await _outfitRepository.getClothingItemWearCount();
+      
+      // Calculate cost per wear and filter out items without price
+      final itemsWithPrice = filteredItems
+          .where((item) => item.purchasePrice != null && item.purchasePrice! > 0)
+          .map((item) {
+            final wearCount = wearCountMap[item.id] ?? 0;
+            return item.copyWith(wearCount: wearCount);
+          })
+          .toList();
+      
+      // For items with 0 wear count, assign a default wear count of 1 to allow cost per wear calculation
+      // This helps during development when there are no outfits yet
+      final itemsWithAdjustedWearCount = itemsWithPrice.map((item) {
+        if (item.wearCount == 0) {
+          return item.copyWith(wearCount: 1); // Default to 1 wear for calculation
+        }
+        return item;
+      }).toList();
+      
+      // Sort by cost per wear
+      itemsWithAdjustedWearCount.sort((a, b) {
+        final costPerWearA = a.purchasePrice! / a.wearCount;
+        final costPerWearB = b.purchasePrice! / b.wearCount;
+        
+        if (ascending) {
+          return costPerWearA.compareTo(costPerWearB);
+        } else {
+          return costPerWearB.compareTo(costPerWearA);
+        }
+      });
+      
+      // Return the top items based on limit
+      return itemsWithAdjustedWearCount.take(limit).toList();
+    } catch (e) {
+      LoggerService.error('Cost per wear use case error: $e');
+      rethrow;
+    }
   }
 }

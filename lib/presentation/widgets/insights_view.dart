@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/clothing_item_providers.dart';
 import '../../domain/entities/clothing_item.dart';
+import 'cost_per_wear_ranking_widget.dart';
 
 /// Insights view showing analytics and metrics about clothing items and outfits
 class InsightsView extends ConsumerWidget {
@@ -27,6 +28,11 @@ class InsightsView extends ConsumerWidget {
             
             // Most Worn Items Leaderboard Card
             _buildMostWornLeaderboardCard(context, ref, mostWornItemsAsync),
+            
+            const SizedBox(height: 16),
+            
+            // Cost per Wear Ranking Card
+            const CostPerWearRankingWidget(),
             
             const SizedBox(height: 16),
           ],

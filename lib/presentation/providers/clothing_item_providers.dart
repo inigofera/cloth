@@ -99,6 +99,48 @@ final mostWornClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) a
   }
 });
 
+/// Provider for clothing items ranked by cost per wear
+final costPerWearRankingProvider = FutureProvider.family<List<ClothingItem>, CostPerWearParams>((ref, params) async {
+  try {
+    final useCase = getIt<GetClothingItemsByCostPerWearUseCase>();
+    final items = await useCase.execute(
+      categories: params.categories,
+      ascending: params.ascending,
+      limit: 10,
+    );
+    return items;
+  } catch (e) {
+    LoggerService.error('Cost per wear ranking provider error: $e');
+    return <ClothingItem>[];
+  }
+});
+
+/// Parameters for cost per wear ranking
+class CostPerWearParams {
+  final List<String> categories;
+  final bool ascending;
+
+  const CostPerWearParams({
+    required this.categories,
+    required this.ascending,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CostPerWearParams &&
+          runtimeType == other.runtimeType &&
+          categories.length == other.categories.length &&
+          categories.every((category) => other.categories.contains(category)) &&
+          ascending == other.ascending;
+
+  @override
+  int get hashCode => Object.hash(
+        Object.hashAll(categories),
+        ascending,
+      );
+}
+
 /// Provider for clothing item search
 final clothingItemSearchProvider = StateProvider<String>((ref) => '');
 

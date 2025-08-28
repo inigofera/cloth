@@ -86,6 +86,7 @@ class DependencyInjection {
     getIt.registerLazySingleton<GetClothingItemsWithWearCountUseCase>(() => GetClothingItemsWithWearCountUseCase(getIt<ClothingItemRepository>(), getIt<OutfitRepository>()));
     getIt.registerLazySingleton<GetClothingItemsByCategoryWithWearCountUseCase>(() => GetClothingItemsByCategoryWithWearCountUseCase(getIt<ClothingItemRepository>(), getIt<OutfitRepository>()));
     getIt.registerLazySingleton<GetMostWornClothingItemsWithWearCountUseCase>(() => GetMostWornClothingItemsWithWearCountUseCase(getIt<ClothingItemRepository>(), getIt<OutfitRepository>()));
+    getIt.registerLazySingleton<GetClothingItemsByCostPerWearUseCase>(() => GetClothingItemsByCostPerWearUseCase(getIt<ClothingItemRepository>(), getIt<OutfitRepository>()));
 
     // Register outfit use cases
     getIt.registerLazySingleton<AddOutfitUseCase>(() => AddOutfitUseCase(getIt<OutfitRepository>(), getIt<ClothingItemRepository>()));
