@@ -5,18 +5,42 @@ import '../providers/clothing_item_providers.dart';
 import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import 'add_outfit_form.dart';
+import 'outfit_calendar_view.dart';
 
 /// Main view for displaying and managing outfits
-class OutfitsView extends ConsumerWidget {
+class OutfitsView extends ConsumerStatefulWidget {
   const OutfitsView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OutfitsView> createState() => _OutfitsViewState();
+}
+
+class _OutfitsViewState extends ConsumerState<OutfitsView> {
+  bool _isCalendarView = false;
+
+  @override
+  Widget build(BuildContext context) {
     final outfitsAsync = ref.watch(activeOutfitsProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Outfits'),
+        actions: [
+          IconButton(
+            icon: Icon(_isCalendarView ? Icons.list : Icons.calendar_month),
+            onPressed: () {
+              setState(() {
+                _isCalendarView = !_isCalendarView;
+              });
+            },
+            tooltip: _isCalendarView ? 'Switch to List View' : 'Switch to Calendar View',
+          ),
+        ],
+      ),
       body: outfitsAsync.when(
-        data: (outfits) => _buildContent(context, ref, outfits),
+        data: (outfits) => _isCalendarView 
+            ? OutfitCalendarView(outfits: outfits)
+            : _buildListView(context, ref, outfits),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
@@ -47,7 +71,7 @@ class OutfitsView extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, List<Outfit> outfits) {
+  Widget _buildListView(BuildContext context, WidgetRef ref, List<Outfit> outfits) {
     // outfits is guaranteed to be a valid list (never null)
     if (outfits.isEmpty) {
       return const Center(

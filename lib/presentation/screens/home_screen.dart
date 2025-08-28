@@ -37,7 +37,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: _currentIndex == 1 ? null : AppBar(
         title: Text(_getTitleForIndex(_currentIndex)),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: const [],

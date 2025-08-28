@@ -136,8 +136,6 @@ class InsightsView extends ConsumerWidget {
         final index = entry.key;
         final item = entry.value;
         final isFirst = index == 0;
-        final isSecond = index == 1;
-        final isThird = index == 2;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -190,7 +188,7 @@ class InsightsView extends ConsumerWidget {
                       Text(
                         item.brand!,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: _getRankingTextColor(context, index).withOpacity(0.8),
+                          color: _getRankingTextColor(context, index).withValues(alpha: 0.8),
                         ),
                       ),
                     ],
@@ -202,7 +200,7 @@ class InsightsView extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _getRankingTextColor(context, index).withOpacity(0.1),
+                  color: _getRankingTextColor(context, index).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(

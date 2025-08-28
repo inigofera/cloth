@@ -12,7 +12,7 @@ class CostPerWearRankingWidget extends ConsumerStatefulWidget {
 }
 
 class _CostPerWearRankingWidgetState extends ConsumerState<CostPerWearRankingWidget> {
-  List<String> _selectedCategories = [];
+  final List<String> _selectedCategories = [];
   bool _isAscending = false;
   List<String> _availableCategories = [];
 
