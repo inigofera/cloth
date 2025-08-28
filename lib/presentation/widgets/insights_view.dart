@@ -27,7 +27,7 @@ class InsightsView extends ConsumerWidget {
                 Text(
                   'Insights',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 24),

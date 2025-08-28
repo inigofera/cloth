@@ -23,24 +23,41 @@ class _OutfitsViewState extends ConsumerState<OutfitsView> {
     final outfitsAsync = ref.watch(activeOutfitsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Outfits'),
-        actions: [
-          IconButton(
-            icon: Icon(_isCalendarView ? Icons.list : Icons.calendar_month),
-            onPressed: () {
-              setState(() {
-                _isCalendarView = !_isCalendarView;
-              });
-            },
-            tooltip: _isCalendarView ? 'Switch to List View' : 'Switch to Calendar View',
-          ),
-        ],
-      ),
       body: outfitsAsync.when(
-        data: (outfits) => _isCalendarView 
-            ? OutfitCalendarView(outfits: outfits)
-            : _buildListView(context, ref, outfits),
+        data: (outfits) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Outfits',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(_isCalendarView ? Icons.list : Icons.calendar_month),
+                    onPressed: () {
+                      setState(() {
+                        _isCalendarView = !_isCalendarView;
+                      });
+                    },
+                    tooltip: _isCalendarView ? 'Switch to List View' : 'Switch to Calendar View',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: _isCalendarView 
+                  ? OutfitCalendarView(outfits: outfits)
+                  : _buildListView(context, ref, outfits),
+            ),
+          ],
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(

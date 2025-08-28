@@ -130,7 +130,7 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Clothing Item'),
+        title: const Text('cloth diary'),
       ),
       body: Form(
         key: _formKey,

@@ -24,20 +24,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _getTitleForIndex(int index) {
     switch (index) {
       case 0:
-        return 'Clothing Items';
+        return 'cloth diary';
       case 1:
-        return 'Outfits';
+        return 'cloth diary';
       case 2:
-        return 'Insights';
+        return 'cloth diary';
       default:
-        return 'Cloth';
+        return 'cloth diary';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _currentIndex == 1 ? null : AppBar(
+      appBar: AppBar(
         title: Text(_getTitleForIndex(_currentIndex)),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: const [],

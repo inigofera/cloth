@@ -22,88 +22,22 @@ class _ClothingItemsViewState extends ConsumerState<ClothingItemsView> {
     final currentSortOption = ref.watch(clothingItemsSortOptionProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Clothing Items'),
-        actions: [
-          // Expand/Collapse all button
-          IconButton(
-            icon: Icon(
-              _expandedCategories.isEmpty ? Icons.unfold_more : Icons.unfold_less,
-            ),
-            onPressed: () {
-              if (_expandedCategories.isEmpty) {
-                // Expand all categories
-                clothingItemsAsync.whenData((items) {
-                  if (items.isNotEmpty) {
-                    final categories = _getCategoriesFromItems(items);
-                    setState(() {
-                      _expandedCategories.addAll(categories);
-                    });
-                  }
-                });
-              } else {
-                // Collapse all categories
-                setState(() {
-                  _expandedCategories.clear();
-                });
-              }
-            },
-            tooltip: _expandedCategories.isEmpty ? 'Expand all categories' : 'Collapse all categories',
-          ),
-          // Sorting dropdown
-          PopupMenuButton<SortOption>(
-            icon: const Icon(Icons.sort),
-            tooltip: 'Sort items',
-            onSelected: (SortOption option) {
-              // Update the provider instead of local state
-              ref.read(clothingItemsSortOptionProvider.notifier).state = option;
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<SortOption>(
-                value: SortOption.alphabetical,
-                child: Row(
-                  children: [
-                    Icon(Icons.sort_by_alpha),
-                    SizedBox(width: 8),
-                    Text('Sort Alphabetically'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<SortOption>(
-                value: SortOption.wearCountAscending,
-                child: Row(
-                  children: [
-                    Icon(Icons.trending_up),
-                    SizedBox(width: 8),
-                    Text('Sort by Wears (Low to High)'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<SortOption>(
-                value: SortOption.wearCountDescending,
-                child: Row(
-                  children: [
-                    Icon(Icons.trending_down),
-                    SizedBox(width: 8),
-                    Text('Sort by Wears (High to Low)'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // Refresh button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              // Trigger a refresh by invalidating the provider
-              ref.invalidate(activeClothingItemsProvider);
-            },
-            tooltip: 'Refresh wear counts',
-          ),
-        ],
-      ),
       body: clothingItemsAsync.when(
-        data: (items) => _buildContent(context, ref, items, currentSortOption),
+        data: (items) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Clothing Items',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Expanded(child: _buildContent(context, ref, items, currentSortOption)),
+          ],
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),

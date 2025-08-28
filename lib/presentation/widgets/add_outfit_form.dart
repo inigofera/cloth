@@ -96,7 +96,7 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Log Outfit'),
+        title: const Text('cloth diary'),
       ),
       body: Form(
         key: _formKey,
