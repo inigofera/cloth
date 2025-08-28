@@ -15,13 +15,11 @@ class _CostPerWearRankingWidgetState extends ConsumerState<CostPerWearRankingWid
   List<String> _selectedCategories = [];
   bool _isAscending = false;
   List<String> _availableCategories = [];
-  bool _hasOutfits = false;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
-    _checkOutfits();
   }
 
   Future<void> _loadCategories() async {
@@ -32,18 +30,6 @@ class _CostPerWearRankingWidgetState extends ConsumerState<CostPerWearRankingWid
       });
     } catch (e) {
       // Handle error silently, will show empty list
-    }
-  }
-
-  Future<void> _checkOutfits() async {
-    try {
-      // Check if there are any outfits to determine if wear counts are real or estimated
-      final outfitCount = await ref.read(clothingItemCountProvider.future);
-      setState(() {
-        _hasOutfits = outfitCount > 0;
-      });
-    } catch (e) {
-      // Handle error silently
     }
   }
 
@@ -283,7 +269,7 @@ class _CostPerWearRankingWidgetState extends ConsumerState<CostPerWearRankingWid
                   ),
                   const SizedBox(height: 4),
                                      Text(
-                     '${item.wearCount}x worn${item.wearCount == 1 && !_hasOutfits ? " (estimated)" : ""}',
+                     '${item.wearCount}x worn',
                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                        color: _getRankingTextColor(context, index).withValues(alpha: 0.7),
                      ),

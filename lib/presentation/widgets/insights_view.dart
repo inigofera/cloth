@@ -13,30 +13,54 @@ class InsightsView extends ConsumerWidget {
     final mostWornItemsAsync = ref.watch(mostWornClothingItemsProvider);
 
     return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Insights',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Breakpoint for switching to two-column layout
+          const breakpoint = 800.0;
+          final isWideScreen = constraints.maxWidth >= breakpoint;
+          
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Insights',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Responsive layout for the two main widgets
+                if (isWideScreen) ...[
+                  // Two-column layout for wide screens
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Most Worn Items - Left column
+                      Expanded(
+                        child: _buildMostWornLeaderboardCard(context, ref, mostWornItemsAsync),
+                      ),
+                      const SizedBox(width: 16),
+                      // Cost per Wear Ranking - Right column
+                      Expanded(
+                        child: const CostPerWearRankingWidget(),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  // Single-column layout for narrow screens
+                  _buildMostWornLeaderboardCard(context, ref, mostWornItemsAsync),
+                  const SizedBox(height: 16),
+                  const CostPerWearRankingWidget(),
+                ],
+                
+                const SizedBox(height: 16),
+              ],
             ),
-            const SizedBox(height: 24),
-            
-            // Most Worn Items Leaderboard Card
-            _buildMostWornLeaderboardCard(context, ref, mostWornItemsAsync),
-            
-            const SizedBox(height: 16),
-            
-            // Cost per Wear Ranking Card
-            const CostPerWearRankingWidget(),
-            
-            const SizedBox(height: 16),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -98,7 +98,6 @@ For the feature to work properly, clothing items need:
 - Items with actual wear history from outfits will show their real wear count
 - Items that haven't been worn yet (0 wear count) will be assigned a default wear count of 1 for calculation purposes
 - This ensures the feature works even during development when no outfits have been created yet
-- Items with estimated wear counts will be marked with "(estimated)" in the UI
 
 ## Bug Fixes
 
