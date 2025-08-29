@@ -15,13 +15,17 @@ class AddOutfitForm extends ConsumerStatefulWidget {
 class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
   final _formKey = GlobalKey<FormState>();
   final _notesController = TextEditingController();
+  final _searchController = TextEditingController();
   
   DateTime _selectedDate = DateTime.now();
   List<String> _selectedClothingItemIds = [];
+  String _searchQuery = '';
+  Set<String> _selectedCategories = <String>{};
 
   @override
   void dispose() {
     _notesController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -48,6 +52,43 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
         newList.add(clothingItemId);
       }
       _selectedClothingItemIds = newList;
+    });
+  }
+
+  List<ClothingItem> _filterClothingItems(List<ClothingItem> items) {
+    List<ClothingItem> filteredItems = items;
+    
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      filteredItems = filteredItems.where((item) =>
+          item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (item.brand?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+          item.category.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (item.subcategory?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
+      ).toList();
+    }
+    
+    // Filter by selected categories
+    if (_selectedCategories.isNotEmpty) {
+      filteredItems = filteredItems.where((item) =>
+          _selectedCategories.contains(item.category)
+      ).toList();
+    }
+    
+    return filteredItems;
+  }
+
+  Set<String> _getAvailableCategories(List<ClothingItem> items) {
+    return items.map((item) => item.category).toSet();
+  }
+
+  void _toggleCategory(String category) {
+    setState(() {
+      if (_selectedCategories.contains(category)) {
+        _selectedCategories.remove(category);
+      } else {
+        _selectedCategories.add(category);
+      }
     });
   }
 
@@ -96,7 +137,7 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('cloth diary'),
+        title: const Text('Add new Outfit'),
       ),
       body: Form(
         key: _formKey,
@@ -114,6 +155,92 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
             ),
             const SizedBox(height: 16),
 
+            // Search bar
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search for clothing items...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Category filter chips
+            clothingItemsAsync.when(
+              data: (clothingItems) {
+                final availableCategories = _getAvailableCategories(clothingItems);
+                if (availableCategories.isEmpty) return const SizedBox.shrink();
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Filter by Category',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: availableCategories.map((category) {
+                        final isSelected = _selectedCategories.contains(category);
+                        return FilterChip(
+                          label: Text(category),
+                          selected: isSelected,
+                          onSelected: (selected) => _toggleCategory(category),
+                          selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                          checkmarkColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          side: BorderSide(
+                            color: isSelected 
+                                ? Theme.of(context).colorScheme.primary 
+                                : Theme.of(context).colorScheme.outline,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    if (_selectedCategories.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _selectedCategories.clear();
+                          });
+                        },
+                        icon: const Icon(Icons.clear_all, size: 16),
+                        label: const Text('Clear all filters'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 16),
+
             // Clothing items selection
             const Text(
               'Select Clothing Items',
@@ -122,7 +249,10 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
             const SizedBox(height: 8),
             
             clothingItemsAsync.when(
-              data: (clothingItems) => _buildClothingItemsList(clothingItems),
+              data: (clothingItems) {
+                final filteredItems = _filterClothingItems(clothingItems);
+                return _buildClothingItemsList(filteredItems);
+              },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(child: Text('Error: $error')),
             ),
