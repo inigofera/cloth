@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../providers/clothing_item_providers.dart';
+import 'edit_outfit_form.dart';
 
 /// Calendar view for displaying outfits in a monthly format
 class OutfitCalendarView extends ConsumerStatefulWidget {
@@ -349,6 +350,54 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
     return monthNames[month - 1];
   }
 
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final outfitDate = DateTime(date.year, date.month, date.day);
+
+    if (outfitDate == today) {
+      return 'Today';
+    } else if (outfitDate == yesterday) {
+      return 'Yesterday';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
+  }
+
+  void _editOutfit(BuildContext context, Outfit outfit) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EditOutfitForm(outfit: outfit),
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, Outfit outfit) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Outfit'),
+          content: Text('Are you sure you want to delete the outfit from ${_formatDate(outfit.date)}?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // TODO: Implement delete functionality when outfit providers are available
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showOutfitsForDate(DateTime date) {
     final outfitsForDate = widget.outfits
         .where((outfit) => _isSameDay(outfit.date, date))
@@ -435,15 +484,54 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Time (if multiple outfits on same day)
-            if (outfit.date.hour != 0 || outfit.date.minute != 0)
-              Text(
-                '${outfit.date.hour.toString().padLeft(2, '0')}:${outfit.date.minute.toString().padLeft(2, '0')}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
+            // Header with time and actions
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Time (if multiple outfits on same day)
+                if (outfit.date.hour != 0 || outfit.date.minute != 0)
+                  Text(
+                    '${outfit.date.hour.toString().padLeft(2, '0')}:${outfit.date.minute.toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                // Actions
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, size: 20),
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _editOutfit(context, outfit);
+                    } else if (value == 'delete') {
+                      _showDeleteDialog(context, outfit);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Delete', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+              ],
+            ),
             
             const SizedBox(height: 8),
             

@@ -5,6 +5,7 @@ import '../providers/clothing_item_providers.dart';
 import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import 'add_outfit_form.dart';
+import 'edit_outfit_form.dart';
 import 'outfit_calendar_view.dart';
 
 /// Main view for displaying and managing outfits
@@ -151,9 +152,37 @@ class _OutfitsViewState extends ConsumerState<OutfitsView> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _showDeleteDialog(context, ref, outfit),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, size: 20),
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _editOutfit(context, outfit);
+                    } else if (value == 'delete') {
+                      _showDeleteDialog(context, ref, outfit);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text('Delete', style: TextStyle(color: Colors.red)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -298,6 +327,14 @@ class _OutfitsViewState extends ConsumerState<OutfitsView> {
           ],
         );
       },
+    );
+  }
+
+  void _editOutfit(BuildContext context, Outfit outfit) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => EditOutfitForm(outfit: outfit),
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/clothing_item_providers.dart';
 import '../../domain/entities/clothing_item.dart';
 import 'add_clothing_item_form.dart';
+import 'edit_clothing_item_form.dart';
 
 /// Main view for displaying and managing clothing items
 class ClothingItemsView extends ConsumerWidget {
@@ -103,11 +104,27 @@ class ClothingItemsView extends ConsumerWidget {
             ),
             trailing: PopupMenuButton<String>(
               onSelected: (value) {
-                if (value == 'delete') {
+                if (value == 'edit') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => EditClothingItemForm(clothingItem: item),
+                    ),
+                  );
+                } else if (value == 'delete') {
                   _showDeleteDialog(context, ref, item);
                 }
               },
               itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit),
+                      SizedBox(width: 8),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
                 const PopupMenuItem(
                   value: 'delete',
                   child: Row(

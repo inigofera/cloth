@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/clothing_item_providers.dart';
 import '../../domain/entities/clothing_item.dart';
 import 'add_clothing_item_form.dart';
+import 'edit_clothing_item_form.dart';
 
 /// Main view for displaying and managing clothing items
 class ClothingItemsView extends ConsumerStatefulWidget {
@@ -272,7 +273,11 @@ class _ClothingItemsViewState extends ConsumerState<ClothingItemsView> {
           icon: const Icon(Icons.more_vert, size: 20),
           onSelected: (value) {
             if (value == 'edit') {
-              // TODO: Implement edit functionality
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => EditClothingItemForm(clothingItem: item),
+                ),
+              );
             } else if (value == 'delete') {
               _showDeleteDialog(context, ref, item);
             }
@@ -361,8 +366,5 @@ class _ClothingItemsViewState extends ConsumerState<ClothingItemsView> {
     );
   }
 
-  /// Get unique categories from items
-  Set<String> _getCategoriesFromItems(List<ClothingItem> items) {
-    return items.map((item) => item.category).toSet();
-  }
+
 }
