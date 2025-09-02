@@ -31,14 +31,12 @@ class _CalendarData {
 
 class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
   late DateTime _focusedDate;
-  late DateTime _selectedDate;
 
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
     _focusedDate = DateTime(now.year, now.month, 1);
-    _selectedDate = now;
   }
 
   @override
@@ -149,7 +147,6 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
     setState(() {
       final now = DateTime.now();
       _focusedDate = DateTime(now.year, now.month, 1);
-      _selectedDate = now;
     });
   }
 
@@ -243,21 +240,18 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
   }
 
     Widget _buildDayCell(DateTime date, int day, bool hasOutfits) {
-    final isSelected = _isSameDay(date, _selectedDate);
     final isToday = _isSameDay(date, DateTime.now());
+    final outfitWithImage = _getFirstOutfitWithImageForDate(date);
     
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedDate = date;
-        });
         _showOutfitsForDate(date);
       },
       child: Container(
         height: 60,
         margin: const EdgeInsets.all(1),
         decoration: BoxDecoration(
-          color: _getDayCellColor(isSelected, hasOutfits),
+          color: _getDayCellColor(hasOutfits),
           border: Border.all(
             color: _getDayCellBorderColor(isToday),
             width: isToday ? 2 : 1,
@@ -266,16 +260,36 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
         ),
         child: Stack(
           children: [
-            _buildDayNumber(day, isSelected),
-            if (hasOutfits) _buildOutfitDots(date, isSelected),
+            // Background image if available
+            if (outfitWithImage != null)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.memory(
+                    outfitWithImage.imageData!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            // Semi-transparent overlay for better text visibility
+            if (outfitWithImage != null)
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.black.withOpacity(0.3),
+                  ),
+                ),
+              ),
+            _buildDayNumber(day, outfitWithImage != null),
+            if (hasOutfits) _buildOutfitDots(date, outfitWithImage != null),
           ],
         ),
       ),
     );
   }
 
-  Color? _getDayCellColor(bool isSelected, bool hasOutfits) {
-    if (isSelected) return Theme.of(context).colorScheme.primary;
+  Color? _getDayCellColor(bool hasOutfits) {
     if (hasOutfits) return Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3);
     return null;
   }
@@ -284,7 +298,7 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
     return isToday ? Theme.of(context).colorScheme.primary : Colors.grey.shade300;
   }
 
-  Widget _buildDayNumber(int day, bool isSelected) {
+  Widget _buildDayNumber(int day, bool hasBackgroundImage) {
     return Positioned(
       top: 4,
       left: 4,
@@ -293,13 +307,22 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: isSelected ? Theme.of(context).colorScheme.onPrimary : null,
+          color: hasBackgroundImage ? Colors.white : null,
+          shadows: hasBackgroundImage
+              ? [
+                  Shadow(
+                    offset: const Offset(1, 1),
+                    blurRadius: 2,
+                    color: Colors.black.withOpacity(0.7),
+                  ),
+                ]
+              : null,
         ),
       ),
     );
   }
 
-  Widget _buildOutfitDots(DateTime date, bool isSelected) {
+  Widget _buildOutfitDots(DateTime date, bool hasBackgroundImage) {
     final outfitCount = _getOutfitCountForDate(date).clamp(0, 5);
     
     return Positioned(
@@ -314,10 +337,19 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
             height: 6,
             margin: EdgeInsets.only(right: index < outfitCount - 1 ? 2 : 0),
             decoration: BoxDecoration(
-              color: isSelected 
-                  ? Theme.of(context).colorScheme.onPrimary
+              color: hasBackgroundImage
+                  ? Colors.white
                   : Theme.of(context).colorScheme.primary,
               shape: BoxShape.circle,
+              boxShadow: hasBackgroundImage
+                  ? [
+                      BoxShadow(
+                        offset: const Offset(1, 1),
+                        blurRadius: 2,
+                        color: Colors.black.withOpacity(0.7),
+                      ),
+                    ]
+                  : null,
             ),
           ),
         ),
@@ -331,6 +363,17 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
 
   int _getOutfitCountForDate(DateTime date) {
     return widget.outfits.where((outfit) => _isSameDay(outfit.date, date)).length;
+  }
+
+  /// Gets the first outfit with an image for the given date
+  Outfit? _getFirstOutfitWithImageForDate(DateTime date) {
+    final outfitsForDate = widget.outfits.where((outfit) => _isSameDay(outfit.date, date)).toList();
+    for (final outfit in outfitsForDate) {
+      if (outfit.imageData != null) {
+        return outfit;
+      }
+    }
+    return null;
   }
 
   bool _isSameDay(DateTime date1, DateTime date2) {

@@ -26,13 +26,14 @@ class OutfitModelAdapter extends TypeAdapter<OutfitModel> {
       isActive: fields[6] as bool,
       cloudId: fields[7] as String?,
       lastSyncedAt: fields[8] as DateTime?,
+      imageData: fields[9] as Uint8List?,
     );
   }
 
   @override
   void write(BinaryWriter writer, OutfitModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class OutfitModelAdapter extends TypeAdapter<OutfitModel> {
       ..writeByte(7)
       ..write(obj.cloudId)
       ..writeByte(8)
-      ..write(obj.lastSyncedAt);
+      ..write(obj.lastSyncedAt)
+      ..writeByte(9)
+      ..write(obj.imageData);
   }
 
   @override
