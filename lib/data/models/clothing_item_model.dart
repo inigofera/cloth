@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:hive/hive.dart';
 import '../../domain/entities/clothing_item.dart';
 
@@ -67,6 +68,9 @@ class ClothingItemModel extends HiveObject {
   @HiveField(19)
   int wearCount; // total number of outfits containing this item
 
+  @HiveField(20)
+  Uint8List? imageData; // Binary image data (optimized)
+
   ClothingItemModel({
     required this.id,
     required this.name,
@@ -88,6 +92,7 @@ class ClothingItemModel extends HiveObject {
     this.cloudId,
     this.lastSyncedAt,
     this.wearCount = 0,
+    this.imageData,
   });
 
   /// Converts domain entity to Hive model
@@ -113,6 +118,7 @@ class ClothingItemModel extends HiveObject {
       cloudId: null, // Will be set when cloud sync is implemented
       lastSyncedAt: null, // Will be set when cloud sync is implemented
       wearCount: entity.wearCount,
+      imageData: entity.imageData,
     );
   }
 
@@ -137,6 +143,7 @@ class ClothingItemModel extends HiveObject {
       updatedAt: updatedAt,
       isActive: isActive,
       wearCount: wearCount,
+      imageData: imageData,
     );
   }
 
@@ -159,6 +166,7 @@ class ClothingItemModel extends HiveObject {
     String? cloudId,
     DateTime? lastSyncedAt,
     int? wearCount,
+    Uint8List? imageData,
   }) {
     return ClothingItemModel(
       id: id,
@@ -181,6 +189,7 @@ class ClothingItemModel extends HiveObject {
       cloudId: cloudId ?? this.cloudId,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       wearCount: wearCount ?? this.wearCount,
+      imageData: imageData ?? this.imageData,
     );
   }
 

@@ -4,6 +4,7 @@ import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../providers/clothing_item_providers.dart';
 import 'edit_outfit_form.dart';
+import 'clothing_item_thumbnail.dart';
 
 /// Calendar view for displaying outfits in a monthly format
 class OutfitCalendarView extends ConsumerStatefulWidget {
@@ -585,10 +586,9 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
   Widget _buildClothingItemTile(ClothingItem item) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        _getCategoryIcon(item.category),
-        color: Colors.grey.shade600,
-        size: 20,
+      leading: ClothingItemThumbnail(
+        item: item,
+        size: 24,
       ),
       title: Text(
         item.name,
@@ -624,27 +624,6 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
       return 'Outfits yesterday';
     } else {
       return 'Outfits on ${date.day}/${date.month}/${date.year}';
-    }
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'base layer':
-        return Icons.checkroom;
-      case 'outerwear':
-        return Icons.ac_unit;
-      case 'bottoms':
-        return Icons.accessibility;
-      case 'accessories':
-        return Icons.watch;
-      case 'footwear':
-        return Icons.sports_soccer;
-      case 'formal wear':
-        return Icons.business;
-      case 'sportswear':
-        return Icons.fitness_center;
-      default:
-        return Icons.checkroom;
     }
   }
 }

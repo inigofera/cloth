@@ -4,6 +4,7 @@ import '../providers/clothing_item_providers.dart';
 import '../../domain/entities/clothing_item.dart';
 import 'add_clothing_item_form.dart';
 import 'edit_clothing_item_form.dart';
+import 'clothing_item_thumbnail.dart';
 
 /// Main view for displaying and managing clothing items
 class ClothingItemsView extends ConsumerWidget {
@@ -62,12 +63,9 @@ class ClothingItemsView extends ConsumerWidget {
         return Card(
           margin: const EdgeInsets.only(bottom: 12.0),
           child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: _getCategoryColor(item.category),
-              child: Icon(
-                _getCategoryIcon(item.category),
-                color: Colors.white,
-              ),
+            leading: ClothingItemThumbnail(
+              item: item,
+              size: 40,
             ),
             title: Text(
               item.name,

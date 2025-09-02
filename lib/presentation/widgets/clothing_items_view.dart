@@ -4,6 +4,7 @@ import '../providers/clothing_item_providers.dart';
 import '../../domain/entities/clothing_item.dart';
 import 'add_clothing_item_form.dart';
 import 'edit_clothing_item_form.dart';
+import 'clothing_item_thumbnail.dart';
 
 /// Main view for displaying and managing clothing items
 class ClothingItemsView extends ConsumerStatefulWidget {
@@ -197,13 +198,9 @@ class _ClothingItemsViewState extends ConsumerState<ClothingItemsView> {
       elevation: 2,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        leading: CircleAvatar(
-          backgroundColor: _getCategoryColor(item.category),
-          child: Icon(
-            _getCategoryIcon(item.category),
-            color: Colors.white,
-            size: 20,
-          ),
+        leading: ClothingItemThumbnail(
+          item: item,
+          size: 40,
         ),
         title: Text(
           item.name,

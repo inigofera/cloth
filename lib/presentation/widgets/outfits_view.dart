@@ -7,6 +7,7 @@ import '../../domain/entities/clothing_item.dart';
 import 'add_outfit_form.dart';
 import 'edit_outfit_form.dart';
 import 'outfit_calendar_view.dart';
+import 'clothing_item_thumbnail.dart';
 
 /// Main view for displaying and managing outfits
 class OutfitsView extends ConsumerStatefulWidget {
@@ -238,9 +239,9 @@ class _OutfitsViewState extends ConsumerState<OutfitsView> {
   Widget _buildClothingItemTile(ClothingItem item) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        _getCategoryIcon(item.category),
-        color: Colors.grey.shade600,
+      leading: ClothingItemThumbnail(
+        item: item,
+        size: 32,
       ),
       title: Text(
         item.name,
@@ -274,27 +275,6 @@ class _OutfitsViewState extends ConsumerState<OutfitsView> {
       return 'Yesterday';
     } else {
       return '${date.day}/${date.month}/${date.year}';
-    }
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'base layer':
-        return Icons.checkroom;
-      case 'outerwear':
-        return Icons.ac_unit;
-      case 'bottoms':
-        return Icons.accessibility;
-      case 'accessories':
-        return Icons.watch;
-      case 'footwear':
-        return Icons.sports_soccer;
-      case 'formal wear':
-        return Icons.business;
-      case 'sportswear':
-        return Icons.fitness_center;
-      default:
-        return Icons.checkroom;
     }
   }
 

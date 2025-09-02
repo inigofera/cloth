@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
@@ -17,6 +18,7 @@ class ClothingItem extends Equatable {
   final String? laundryImpact;
   final bool? repairable;
   final String? notes;
+  final Uint8List? imageData; // Binary image data (optimized)
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isActive; // for soft deletion
@@ -37,6 +39,7 @@ class ClothingItem extends Equatable {
     this.laundryImpact,
     this.repairable,
     this.notes,
+    this.imageData,
     required this.createdAt,
     required this.updatedAt,
     this.isActive = true,
@@ -58,6 +61,7 @@ class ClothingItem extends Equatable {
     String? laundryImpact,
     bool? repairable,
     String? notes,
+    Uint8List? imageData,
   }) {
     final now = DateTime.now();
     return ClothingItem(
@@ -75,6 +79,7 @@ class ClothingItem extends Equatable {
       laundryImpact: laundryImpact,
       repairable: repairable,
       notes: notes,
+      imageData: imageData,
       createdAt: now,
       updatedAt: now,
       isActive: true,
@@ -98,6 +103,7 @@ class ClothingItem extends Equatable {
     String? laundryImpact,
     bool? repairable,
     String? notes,
+    Uint8List? imageData,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isActive,
@@ -118,6 +124,7 @@ class ClothingItem extends Equatable {
       laundryImpact: laundryImpact ?? this.laundryImpact,
       repairable: repairable ?? this.repairable,
       notes: notes ?? this.notes,
+      imageData: imageData ?? this.imageData,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isActive: isActive ?? this.isActive,
@@ -155,6 +162,7 @@ class ClothingItem extends Equatable {
         laundryImpact,
         repairable,
         notes,
+        imageData,
         createdAt,
         updatedAt,
         isActive,

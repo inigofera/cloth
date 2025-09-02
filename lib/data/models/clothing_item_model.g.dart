@@ -37,13 +37,14 @@ class ClothingItemModelAdapter extends TypeAdapter<ClothingItemModel> {
       cloudId: fields[17] as String?,
       lastSyncedAt: fields[18] as DateTime?,
       wearCount: fields[19] as int,
+      imageData: fields[20] as Uint8List?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ClothingItemModel obj) {
     writer
-      ..writeByte(20)
+      ..writeByte(21)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -83,7 +84,9 @@ class ClothingItemModelAdapter extends TypeAdapter<ClothingItemModel> {
       ..writeByte(18)
       ..write(obj.lastSyncedAt)
       ..writeByte(19)
-      ..write(obj.wearCount);
+      ..write(obj.wearCount)
+      ..writeByte(20)
+      ..write(obj.imageData);
   }
 
   @override

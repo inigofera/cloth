@@ -4,6 +4,7 @@ import '../../domain/entities/outfit.dart';
 
 import '../providers/outfit_providers.dart';
 import '../providers/clothing_item_providers.dart';
+import 'clothing_item_thumbnail.dart';
 
 class EditOutfitForm extends ConsumerStatefulWidget {
   final Outfit outfit;
@@ -179,11 +180,15 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
                                 : Colors.grey.shade600,
                           ),
                         ),
-                        secondary: Icon(
-                          _getCategoryIcon(item.category),
-                          color: isSelected 
+                        secondary: ClothingItemThumbnail(
+                          item: item,
+                          size: 32,
+                          backgroundColor: isSelected 
                               ? Theme.of(context).colorScheme.primary
-                              : Colors.grey.shade600,
+                              : null,
+                          iconColor: isSelected 
+                              ? Colors.white
+                              : null,
                         ),
                         activeColor: Theme.of(context).colorScheme.primary,
                         checkColor: Colors.white,
@@ -237,26 +242,5 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
         ),
       ),
     );
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'base layer':
-        return Icons.checkroom;
-      case 'outerwear':
-        return Icons.ac_unit;
-      case 'bottoms':
-        return Icons.accessibility;
-      case 'accessories':
-        return Icons.watch;
-      case 'footwear':
-        return Icons.sports_soccer;
-      case 'formal wear':
-        return Icons.business;
-      case 'sportswear':
-        return Icons.fitness_center;
-      default:
-        return Icons.checkroom;
-    }
   }
 }

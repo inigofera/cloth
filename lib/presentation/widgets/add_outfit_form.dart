@@ -4,6 +4,7 @@ import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../providers/outfit_providers.dart';
 import '../providers/clothing_item_providers.dart';
+import 'clothing_item_thumbnail.dart';
 
 class AddOutfitForm extends ConsumerStatefulWidget {
   const AddOutfitForm({super.key});
@@ -20,7 +21,7 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
   DateTime _selectedDate = DateTime.now();
   List<String> _selectedClothingItemIds = [];
   String _searchQuery = '';
-  Set<String> _selectedCategories = <String>{};
+  final Set<String> _selectedCategories = <String>{};
 
   @override
   void dispose() {
@@ -303,9 +304,15 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
           margin: const EdgeInsets.symmetric(vertical: 4),
           color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
           child: ListTile(
-            leading: Icon(
-              _getCategoryIcon(item.category),
-              color: isSelected ? Theme.of(context).colorScheme.primary : null,
+            leading: ClothingItemThumbnail(
+              item: item,
+              size: 32,
+              backgroundColor: isSelected 
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+              iconColor: isSelected 
+                  ? Colors.white
+                  : null,
             ),
             title: Text(
               item.name,
@@ -326,27 +333,4 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
       }).toList(),
     );
   }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'base layer':
-        return Icons.checkroom;
-      case 'outerwear':
-        return Icons.ac_unit;
-      case 'bottoms':
-        return Icons.accessibility;
-      case 'accessories':
-        return Icons.watch;
-      case 'footwear':
-        return Icons.sports_soccer;
-      case 'formal wear':
-        return Icons.business;
-      case 'sportswear':
-        return Icons.fitness_center;
-      default:
-        return Icons.checkroom;
-    }
-  }
 }
-
-

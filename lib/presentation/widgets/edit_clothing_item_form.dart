@@ -1,7 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../providers/clothing_item_providers.dart';
+import 'image_picker_widget.dart';
 
 class EditClothingItemForm extends ConsumerStatefulWidget {
   final ClothingItem clothingItem;
@@ -28,6 +30,7 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
   
   late DateTime? _ownedSince;
   late bool _repairable;
+  Uint8List? _imageData;
 
   final List<String> _categories = [
     'Base Layer',
@@ -77,6 +80,7 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
     
     _ownedSince = widget.clothingItem.ownedSince;
     _repairable = widget.clothingItem.repairable ?? true;
+    _imageData = widget.clothingItem.imageData;
   }
 
   @override
@@ -128,6 +132,7 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
           laundryImpact: _laundryImpactController.text.trim().isEmpty ? null : _laundryImpactController.text.trim(),
           repairable: _repairable,
           notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          imageData: _imageData,
           updatedAt: DateTime.now(),
         );
 
@@ -205,6 +210,18 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
                   return 'Category is required';
                 }
                 return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Image picker
+            ImagePickerWidget(
+              label: 'Item Photo (Optional)',
+              initialImageData: _imageData,
+              onImageChanged: (imageData) {
+                setState(() {
+                  _imageData = imageData;
+                });
               },
             ),
             const SizedBox(height: 16),
