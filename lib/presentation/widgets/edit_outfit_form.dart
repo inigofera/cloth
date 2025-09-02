@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/outfit.dart';
@@ -5,6 +6,7 @@ import '../../domain/entities/outfit.dart';
 import '../providers/outfit_providers.dart';
 import '../providers/clothing_item_providers.dart';
 import 'clothing_item_thumbnail.dart';
+import 'image_picker_widget.dart';
 
 class EditOutfitForm extends ConsumerStatefulWidget {
   final Outfit outfit;
@@ -21,6 +23,7 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
   
   late DateTime _selectedDate;
   late List<String> _selectedClothingItemIds;
+  Uint8List? _imageData;
 
   @override
   void initState() {
@@ -28,6 +31,7 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
     _selectedDate = widget.outfit.date;
     _selectedClothingItemIds = List<String>.from(widget.outfit.clothingItemIds);
     _notesController.text = widget.outfit.notes ?? '';
+    _imageData = widget.outfit.imageData;
   }
 
   @override
@@ -78,6 +82,7 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
           notes: _notesController.text.trim().isEmpty 
               ? null 
               : _notesController.text.trim(),
+          imageData: _imageData,
           updatedAt: DateTime.now(),
         );
 
@@ -204,6 +209,18 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
             ),
 
             const SizedBox(height: 24),
+
+            // Image picker
+            ImagePickerWidget(
+              label: 'Outfit Photo (Optional)',
+              initialImageData: _imageData,
+              onImageChanged: (imageData) {
+                setState(() {
+                  _imageData = imageData;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
 
             // Notes field
             Text(

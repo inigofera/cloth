@@ -534,8 +534,28 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
               ],
             ),
             
-            const SizedBox(height: 8),
-            
+                        const SizedBox(height: 8),
+
+            // Outfit image
+            if (outfit.imageData != null) ...[
+              Container(
+                width: double.infinity,
+                height: 150,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.memory(
+                    outfit.imageData!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+
             // Clothing items
             FutureBuilder<List<ClothingItem>>(
               future: _getClothingItemsForOutfit(outfit),

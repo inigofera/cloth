@@ -189,6 +189,26 @@ class _OutfitsViewState extends ConsumerState<OutfitsView> {
             ),
             const SizedBox(height: 12),
 
+            // Outfit image
+            if (outfit.imageData != null) ...[
+              Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.memory(
+                    outfit.imageData!,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
             // Clothing items
             FutureBuilder<List<ClothingItem>>(
               future: _getClothingItemsForOutfit(ref, outfit),

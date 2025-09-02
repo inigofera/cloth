@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:hive/hive.dart';
 import '../../domain/entities/outfit.dart';
 
@@ -33,6 +34,9 @@ class OutfitModel extends HiveObject {
   @HiveField(8)
   DateTime? lastSyncedAt; // For future cloud sync
 
+  @HiveField(9)
+  Uint8List? imageData; // Binary image data (optimized)
+
   OutfitModel({
     required this.id,
     required this.date,
@@ -43,6 +47,7 @@ class OutfitModel extends HiveObject {
     this.isActive = true,
     this.cloudId,
     this.lastSyncedAt,
+    this.imageData,
   });
 
   /// Converts domain entity to Hive model
@@ -57,6 +62,7 @@ class OutfitModel extends HiveObject {
       isActive: entity.isActive,
       cloudId: null, // Will be set when cloud sync is implemented
       lastSyncedAt: null, // Will be set when cloud sync is implemented
+      imageData: entity.imageData,
     );
   }
 
@@ -67,6 +73,7 @@ class OutfitModel extends HiveObject {
       date: date,
       clothingItemIds: clothingItemIds,
       notes: notes,
+      imageData: imageData,
       createdAt: createdAt,
       updatedAt: updatedAt,
       isActive: isActive,
@@ -82,6 +89,7 @@ class OutfitModel extends HiveObject {
     bool? isActive,
     String? cloudId,
     DateTime? lastSyncedAt,
+    Uint8List? imageData,
   }) {
     return OutfitModel(
       id: id,
@@ -93,6 +101,7 @@ class OutfitModel extends HiveObject {
       isActive: isActive ?? this.isActive,
       cloudId: cloudId ?? this.cloudId,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
+      imageData: imageData ?? this.imageData,
     );
   }
 

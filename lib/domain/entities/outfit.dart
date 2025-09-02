@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
@@ -7,6 +8,7 @@ class Outfit extends Equatable {
   final DateTime date;
   final List<String> clothingItemIds; // References to ClothingItem IDs
   final String? notes;
+  final Uint8List? imageData; // Binary image data (optimized)
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isActive;
@@ -16,6 +18,7 @@ class Outfit extends Equatable {
     required this.date,
     required this.clothingItemIds,
     this.notes,
+    this.imageData,
     required this.createdAt,
     required this.updatedAt,
     this.isActive = true,
@@ -26,6 +29,7 @@ class Outfit extends Equatable {
     required DateTime date,
     required List<String> clothingItemIds,
     String? notes,
+    Uint8List? imageData,
   }) {
     final now = DateTime.now();
     return Outfit(
@@ -33,6 +37,7 @@ class Outfit extends Equatable {
       date: date,
       clothingItemIds: clothingItemIds,
       notes: notes,
+      imageData: imageData,
       createdAt: now,
       updatedAt: now,
       isActive: true,
@@ -45,6 +50,7 @@ class Outfit extends Equatable {
     DateTime? date,
     List<String>? clothingItemIds,
     String? notes,
+    Uint8List? imageData,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isActive,
@@ -54,6 +60,7 @@ class Outfit extends Equatable {
       date: date ?? this.date,
       clothingItemIds: clothingItemIds ?? this.clothingItemIds,
       notes: notes ?? this.notes,
+      imageData: imageData ?? this.imageData,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isActive: isActive ?? this.isActive,
@@ -100,6 +107,7 @@ class Outfit extends Equatable {
         date,
         clothingItemIds,
         notes,
+        imageData,
         createdAt,
         updatedAt,
         isActive,

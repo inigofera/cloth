@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/outfit.dart';
@@ -5,6 +6,7 @@ import '../../domain/entities/clothing_item.dart';
 import '../providers/outfit_providers.dart';
 import '../providers/clothing_item_providers.dart';
 import 'clothing_item_thumbnail.dart';
+import 'image_picker_widget.dart';
 
 class AddOutfitForm extends ConsumerStatefulWidget {
   const AddOutfitForm({super.key});
@@ -22,6 +24,7 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
   List<String> _selectedClothingItemIds = [];
   String _searchQuery = '';
   final Set<String> _selectedCategories = <String>{};
+  Uint8List? _imageData;
 
   @override
   void dispose() {
@@ -109,6 +112,7 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
           notes: _notesController.text.trim().isEmpty 
               ? null 
               : _notesController.text.trim(),
+          imageData: _imageData,
         );
 
         await ref.read(outfitNotifierProvider.notifier).addOutfit(outfit);
@@ -258,6 +262,18 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
               error: (error, stack) => Center(child: Text('Error: $error')),
             ),
 
+            const SizedBox(height: 16),
+
+            // Image picker
+            ImagePickerWidget(
+              label: 'Outfit Photo (Optional)',
+              initialImageData: _imageData,
+              onImageChanged: (imageData) {
+                setState(() {
+                  _imageData = imageData;
+                });
+              },
+            ),
             const SizedBox(height: 16),
 
             // Notes
