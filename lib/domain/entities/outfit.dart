@@ -54,13 +54,14 @@ class Outfit extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isActive,
+    bool clearImageData = false,
   }) {
     return Outfit(
       id: id ?? this.id,
       date: date ?? this.date,
       clothingItemIds: clothingItemIds ?? this.clothingItemIds,
       notes: notes ?? this.notes,
-      imageData: imageData ?? this.imageData,
+      imageData: clearImageData ? null : (imageData ?? this.imageData),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isActive: isActive ?? this.isActive,

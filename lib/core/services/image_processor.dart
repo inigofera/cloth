@@ -1,5 +1,5 @@
-import 'dart:typed_data';
 import 'package:image/image.dart' as img;
+import 'package:flutter/foundation.dart';
 
 class ImageProcessor {
   static const int maxWidth = 600;
@@ -43,7 +43,7 @@ class ImageProcessor {
 
       return compressedData;
     } catch (e) {
-      print('Error processing image: $e');
+      debugPrint('Error processing image: $e');
       return null;
     }
   }
@@ -59,7 +59,7 @@ class ImageProcessor {
         'height': image.height,
       };
     } catch (e) {
-      print('Error getting image dimensions: $e');
+      debugPrint('Error getting image dimensions: $e');
       return null;
     }
   }

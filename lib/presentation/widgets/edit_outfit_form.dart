@@ -83,6 +83,7 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
               ? null 
               : _notesController.text.trim(),
           imageData: _imageData,
+          clearImageData: _imageData == null && widget.outfit.imageData != null,
           updatedAt: DateTime.now(),
         );
 

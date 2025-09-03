@@ -277,7 +277,7 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                   ),
                 ),
               ),
@@ -313,7 +313,7 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
                   Shadow(
                     offset: const Offset(1, 1),
                     blurRadius: 2,
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: 0.7),
                   ),
                 ]
               : null,
@@ -346,7 +346,7 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
                       BoxShadow(
                         offset: const Offset(1, 1),
                         blurRadius: 2,
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.black.withValues(alpha: 0.7),
                       ),
                     ]
                   : null,

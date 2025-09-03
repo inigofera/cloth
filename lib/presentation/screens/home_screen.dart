@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/clothing_items_view.dart';
 import '../widgets/outfits_view.dart';
 import '../widgets/insights_view.dart';
+import 'settings_screen.dart';
 
 /// Main home screen for clothing items and outfits management
 class HomeScreen extends ConsumerStatefulWidget {
@@ -40,7 +41,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         title: Text(_getTitleForIndex(_currentIndex)),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: const [],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
