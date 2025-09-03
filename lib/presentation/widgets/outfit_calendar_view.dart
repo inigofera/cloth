@@ -198,13 +198,13 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
   Widget _buildWeekdayHeader(String day) {
     return Expanded(
       child: Container(
-        height: 40,
+        height: 50,
         alignment: Alignment.center,
         child: Text(
           day,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 12,
+            fontSize: 14,
           ),
         ),
       ),
@@ -229,7 +229,7 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
     final dayOffset = cellIndex - (firstWeekday - 1);
     
     if (dayOffset < 0 || dayOffset >= daysInMonth) {
-      return const SizedBox(height: 60);
+      return const SizedBox(height: 80);
     }
     
     final day = dayOffset + 1;
@@ -248,7 +248,7 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
         _showOutfitsForDate(date);
       },
       child: Container(
-        height: 60,
+        height: 80,
         margin: const EdgeInsets.all(1),
         decoration: BoxDecoration(
           color: _getDayCellColor(hasOutfits),
@@ -305,7 +305,7 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
       child: Text(
         day.toString(),
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: FontWeight.bold,
           color: hasBackgroundImage ? Colors.white : null,
           shadows: hasBackgroundImage
@@ -333,9 +333,9 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
         children: List.generate(
           outfitCount,
           (index) => Container(
-            width: 6,
-            height: 6,
-            margin: EdgeInsets.only(right: index < outfitCount - 1 ? 2 : 0),
+            width: 8,
+            height: 8,
+            margin: EdgeInsets.only(right: index < outfitCount - 1 ? 3 : 0),
             decoration: BoxDecoration(
               color: hasBackgroundImage
                   ? Colors.white
