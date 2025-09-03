@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/clothing_item_providers.dart';
 import '../../domain/entities/clothing_item.dart';
 import 'add_clothing_item_form.dart';
-import 'edit_clothing_item_form.dart';
 import 'clothing_item_thumbnail.dart';
+import 'clothing_item_detail_page.dart';
 
 /// Main view for displaying and managing clothing items
 class ClothingItemsView extends ConsumerStatefulWidget {
@@ -266,42 +266,13 @@ class _ClothingItemsViewState extends ConsumerState<ClothingItemsView> {
             ),
           ],
         ),
-        trailing: PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, size: 20),
-          onSelected: (value) {
-            if (value == 'edit') {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => EditClothingItemForm(clothingItem: item),
-                ),
-              );
-            } else if (value == 'delete') {
-              _showDeleteDialog(context, ref, item);
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit),
-                  SizedBox(width: 8),
-                  Text('Edit'),
-                ],
-              ),
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ClothingItemDetailPage(item: item),
             ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Delete', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -340,28 +311,7 @@ class _ClothingItemsViewState extends ConsumerState<ClothingItemsView> {
     }
   }
 
-  void _showDeleteDialog(BuildContext context, WidgetRef ref, ClothingItem item) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
-        content: Text('Are you sure you want to delete "${item.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              ref.read(clothingItemNotifierProvider.notifier).deleteClothingItem(item.id);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
+
 
 
 }
