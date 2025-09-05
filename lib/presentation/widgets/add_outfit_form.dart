@@ -157,6 +157,13 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add new Outfit'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _selectedClothingItemIds.isNotEmpty ? _submitForm : null,
+            tooltip: 'Save Outfit',
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
