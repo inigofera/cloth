@@ -1,5 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
+import '../../../core/services/data_export_service.dart';
+import '../../../core/di/dependency_injection.dart';
+import '../../../domain/repositories/clothing_item_repository.dart';
+import '../../../domain/repositories/outfit_repository.dart';
+import '../../providers/clothing_item_providers.dart';
+import '../../providers/outfit_providers.dart';
+import '../../../domain/entities/clothing_item.dart';
+import '../../../domain/entities/outfit.dart';
 
 /// Data and storage settings category
 class DataSettings extends ConsumerWidget {
@@ -209,16 +219,129 @@ class DataSettings extends ConsumerWidget {
   }
 
   void _exportData(BuildContext context) {
-    // TODO: Implement data export
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Export feature coming soon')),
+    showDialog(
+      context: context,
+      builder: (context) => _ExportDataDialog(),
     );
   }
 
   void _importData(BuildContext context) {
-    // TODO: Implement data import
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Import feature coming soon')),
+    _performImport(context);
+  }
+
+  Future<void> _performImport(BuildContext context) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        allowMultiple: false,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.first;
+        final filePath = file.path;
+        
+        if (filePath != null) {
+          final file = File(filePath);
+          final jsonData = await file.readAsString();
+          
+          final importResult = await DataExportService.importFromJson(jsonData);
+          
+          if (context.mounted) {
+            if (importResult.success) {
+              // Actually save the imported data to the database
+              await _saveImportedData(importResult);
+              _showImportSuccessDialog(context, importResult);
+            } else {
+              _showImportErrorDialog(context, importResult.error ?? 'Unknown error');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showImportErrorDialog(context, 'Import failed: $e');
+      }
+    }
+  }
+
+  /// Saves imported data to the database
+  Future<void> _saveImportedData(ImportResult result) async {
+    try {
+      // Get repositories
+      final clothingItemRepo = getIt<ClothingItemRepository>();
+      final outfitRepo = getIt<OutfitRepository>();
+      
+      // Save clothing items
+      for (final item in result.clothingItems) {
+        try {
+          await clothingItemRepo.addClothingItem(item);
+        } catch (e) {
+          print('Error saving clothing item ${item.name}: $e');
+          // Continue with other items even if one fails
+        }
+      }
+      
+      // Save outfits
+      for (final outfit in result.outfits) {
+        try {
+          await outfitRepo.addOutfit(outfit);
+        } catch (e) {
+          print('Error saving outfit ${outfit.id}: $e');
+          // Continue with other outfits even if one fails
+        }
+      }
+      
+      print('Successfully saved ${result.clothingItems.length} clothing items and ${result.outfits.length} outfits');
+    } catch (e) {
+      print('Error saving imported data: $e');
+      rethrow;
+    }
+  }
+
+  void _showImportSuccessDialog(BuildContext context, ImportResult result) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Import Successful'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Successfully imported:'),
+            const SizedBox(height: 8),
+            Text('• ${result.clothingItems.length} clothing items'),
+            Text('• ${result.outfits.length} outfits'),
+            const SizedBox(height: 8),
+            const Text(
+              'Note: You may need to refresh the app to see the imported data.',
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImportErrorDialog(BuildContext context, String error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Import Failed'),
+        content: Text(error),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -251,5 +374,112 @@ class DataSettings extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+/// Dialog for choosing export format
+class _ExportDataDialog extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return AlertDialog(
+      title: const Text('Export Data'),
+      content: const Text('Choose a format to export your data:'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => _exportData(context, ref, 'json'),
+          child: const Text('JSON (Complete)'),
+        ),
+        TextButton(
+          onPressed: () => _exportData(context, ref, 'csv'),
+          child: const Text('CSV (Spreadsheet)'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _exportData(BuildContext context, WidgetRef ref, String format) async {
+    Navigator.of(context).pop(); // Close dialog first
+    
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Get data from providers
+      final clothingItemsAsync = ref.read(activeClothingItemsProvider);
+      final outfitsAsync = ref.read(outfitNotifierProvider);
+
+      final clothingItems = await clothingItemsAsync.when(
+        data: (items) => items,
+        loading: () => <ClothingItem>[],
+        error: (_, __) => <ClothingItem>[],
+      );
+
+      final outfits = await outfitsAsync.when(
+        data: (items) => items,
+        loading: () => <Outfit>[],
+        error: (_, __) => <Outfit>[],
+      );
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      String data;
+      String filename;
+      String mimeType;
+
+      if (format == 'json') {
+        data = await DataExportService.exportToJson(
+          clothingItems: clothingItems,
+          outfits: outfits,
+        );
+        filename = 'cloth_export_${DateTime.now().millisecondsSinceEpoch}.json';
+        mimeType = 'application/json';
+      } else {
+        data = DataExportService.exportToCsv(
+          clothingItems: clothingItems,
+          outfits: outfits,
+        );
+        filename = 'cloth_export_${DateTime.now().millisecondsSinceEpoch}.csv';
+        mimeType = 'text/csv';
+      }
+
+      await DataExportService.shareExportFile(
+        data: data,
+        filename: filename,
+        mimeType: mimeType,
+      );
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Data exported successfully as $format'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

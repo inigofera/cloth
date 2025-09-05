@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/clothing_item_providers.dart';
+import '../providers/settings_providers.dart';
 import '../../domain/entities/clothing_item.dart';
+import '../../../core/utils/currency_formatter.dart';
 
 /// Widget for displaying clothing items ranked by cost per wear
 class CostPerWearRankingWidget extends ConsumerStatefulWidget {
@@ -258,13 +260,18 @@ class _CostPerWearRankingWidgetState extends ConsumerState<CostPerWearRankingWid
                       color: _getRankingTextColor(context, index).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Text(
-                      '\$${costPerWear.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        color: _getRankingTextColor(context, index),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final currency = ref.watch(currencyProvider);
+                        return Text(
+                          CurrencyFormatter.formatPrice(costPerWear, currency),
+                          style: TextStyle(
+                            color: _getRankingTextColor(context, index),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -274,11 +281,16 @@ class _CostPerWearRankingWidgetState extends ConsumerState<CostPerWearRankingWid
                        color: _getRankingTextColor(context, index).withValues(alpha: 0.7),
                      ),
                    ),
-                  Text(
-                    'Price: \$${item.purchasePrice!.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: _getRankingTextColor(context, index).withValues(alpha: 0.7),
-                    ),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final currency = ref.watch(currencyProvider);
+                      return Text(
+                        'Price: ${CurrencyFormatter.formatPrice(item.purchasePrice!, currency)}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: _getRankingTextColor(context, index).withValues(alpha: 0.7),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

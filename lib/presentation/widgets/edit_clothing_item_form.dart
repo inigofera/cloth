@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../providers/clothing_item_providers.dart';
+import '../providers/settings_providers.dart';
+import '../../../core/utils/currency_formatter.dart';
 import 'image_picker_widget.dart';
 
 class EditClothingItemForm extends ConsumerStatefulWidget {
@@ -294,14 +296,20 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
-              controller: _purchasePriceController,
-              decoration: const InputDecoration(
-                labelText: 'Purchase Price',
-                hintText: 'e.g., 29.99',
-                prefixText: '\$',
-              ),
-              keyboardType: TextInputType.number,
+            Consumer(
+              builder: (context, ref, child) {
+                final currency = ref.watch(currencyProvider);
+                final currencySymbol = CurrencyFormatter.getCurrencySymbol(currency);
+                return TextFormField(
+                  controller: _purchasePriceController,
+                  decoration: InputDecoration(
+                    labelText: 'Purchase Price',
+                    hintText: 'e.g., 29.99',
+                    prefixText: currencySymbol,
+                  ),
+                  keyboardType: TextInputType.number,
+                );
+              },
             ),
             const SizedBox(height: 16),
 

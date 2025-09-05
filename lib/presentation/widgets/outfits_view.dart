@@ -22,7 +22,7 @@ class _OutfitsViewState extends ConsumerState<OutfitsView> {
 
   @override
   Widget build(BuildContext context) {
-    final outfitsAsync = ref.watch(activeOutfitsProvider);
+    final outfitsAsync = ref.watch(allOutfitsProvider);
 
     return Scaffold(
       body: outfitsAsync.when(

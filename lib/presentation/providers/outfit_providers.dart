@@ -32,6 +32,26 @@ final outfitNotifierProvider = StateNotifierProvider<OutfitNotifier, AsyncValue<
   return OutfitNotifier(repository);
 });
 
+/// Provider for all outfits (no date filtering)
+final allOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
+  // Wait for repositories to be ready
+  ref.watch(repositoriesReadyProvider);
+  
+  final outfitsAsync = ref.watch(outfitNotifierProvider);
+  
+  return outfitsAsync.when(
+    data: (outfits) {
+      // Show all outfits, sorted by date (newest first)
+      final sortedOutfits = List<Outfit>.from(outfits)
+        ..sort((a, b) => b.date.compareTo(a.date));
+      
+      return AsyncValue.data(sortedOutfits);
+    },
+    loading: () => const AsyncValue.loading(),
+    error: (error, stack) => AsyncValue.error(error, stack),
+  );
+});
+
 /// Provider for active outfits (filtered by date range)
 final activeOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
   // Wait for repositories to be ready

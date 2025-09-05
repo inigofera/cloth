@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/settings_providers.dart';
+import '../../../core/utils/currency_formatter.dart';
 
 /// General settings category
 class GeneralSettings extends ConsumerWidget {
@@ -57,6 +59,26 @@ class GeneralSettings extends ConsumerWidget {
                 value: true, // TODO: Connect to actual settings
                 onChanged: (value) {
                   // TODO: Implement settings update
+                },
+              ),
+            ],
+          ),
+          _buildSettingsGroup(
+            context: context,
+            title: 'Currency',
+            children: [
+              Consumer(
+                builder: (context, ref, child) {
+                  final currency = ref.watch(currencyProvider);
+                  final currencySymbol = CurrencyFormatter.getCurrencySymbol(currency);
+                  return _buildListTile(
+                    context: context,
+                    title: 'Currency',
+                    subtitle: '$currencySymbol ($currency)',
+                    onTap: () {
+                      _showCurrencyDialog(context, ref, currency);
+                    },
+                  );
                 },
               ),
             ],
@@ -157,6 +179,44 @@ class GeneralSettings extends ConsumerWidget {
               ),
             );
           },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCurrencyDialog(BuildContext context, WidgetRef ref, String currentCurrency) {
+    final currencies = CurrencyFormatter.getSupportedCurrencies();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Currency'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 400,
+          child: ListView.builder(
+            itemCount: currencies.length,
+            itemBuilder: (context, index) {
+              final currency = currencies[index];
+              final isSelected = currency['code'] == currentCurrency;
+              
+              return ListTile(
+                title: Text('${currency['symbol']} ${currency['name']}'),
+                subtitle: Text(currency['code']!),
+                trailing: isSelected ? const Icon(Icons.check, color: Colors.blue) : null,
+                onTap: () {
+                  ref.read(settingsProvider.notifier).updateCurrency(currency['code']!);
+                  Navigator.of(context).pop();
+                },
+              );
+            },
+          ),
         ),
         actions: [
           TextButton(

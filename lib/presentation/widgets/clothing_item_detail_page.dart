@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../providers/clothing_item_providers.dart';
+import '../providers/settings_providers.dart';
+import '../../../core/utils/currency_formatter.dart';
 import 'edit_clothing_item_form.dart';
 
 /// Detail page for displaying comprehensive information about a clothing item
@@ -210,14 +212,25 @@ class ClothingItemDetailPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             if (currentItem.purchasePrice != null)
-              _buildInfoRow(
-                'Purchase Price',
-                '\$${currentItem.purchasePrice!.toStringAsFixed(2)}',
+              Consumer(
+                builder: (context, ref, child) {
+                  final currency = ref.watch(currencyProvider);
+                  return _buildInfoRow(
+                    'Purchase Price',
+                    CurrencyFormatter.formatPrice(currentItem.purchasePrice!, currency),
+                  );
+                },
               ),
             if (currentItem.purchasePrice != null && currentItem.wearCount > 0)
-              _buildInfoRow(
-                'Cost Per Wear',
-                '\$${(currentItem.purchasePrice! / currentItem.wearCount).toStringAsFixed(2)}',
+              Consumer(
+                builder: (context, ref, child) {
+                  final currency = ref.watch(currencyProvider);
+                  final costPerWear = currentItem.purchasePrice! / currentItem.wearCount;
+                  return _buildInfoRow(
+                    'Cost Per Wear',
+                    CurrencyFormatter.formatPrice(costPerWear, currency),
+                  );
+                },
               ),
           ],
         ),

@@ -11,6 +11,7 @@ class SettingsState {
   final bool compactView;
   final String gridSize;
   final bool analytics;
+  final String currency;
 
   const SettingsState({
     this.dailyReminders = true,
@@ -22,6 +23,7 @@ class SettingsState {
     this.compactView = false,
     this.gridSize = 'medium',
     this.analytics = true,
+    this.currency = 'EUR',
   });
 
   SettingsState copyWith({
@@ -34,6 +36,7 @@ class SettingsState {
     bool? compactView,
     String? gridSize,
     bool? analytics,
+    String? currency,
   }) {
     return SettingsState(
       dailyReminders: dailyReminders ?? this.dailyReminders,
@@ -45,6 +48,7 @@ class SettingsState {
       compactView: compactView ?? this.compactView,
       gridSize: gridSize ?? this.gridSize,
       analytics: analytics ?? this.analytics,
+      currency: currency ?? this.currency,
     );
   }
 }
@@ -88,6 +92,10 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   void updateAnalytics(bool value) {
     state = state.copyWith(analytics: value);
   }
+
+  void updateCurrency(String value) {
+    state = state.copyWith(currency: value);
+  }
 }
 
 /// Provider for settings state
@@ -130,4 +138,8 @@ final gridSizeProvider = Provider<String>((ref) {
 
 final analyticsProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider).analytics;
+});
+
+final currencyProvider = Provider<String>((ref) {
+  return ref.watch(settingsProvider).currency;
 });
