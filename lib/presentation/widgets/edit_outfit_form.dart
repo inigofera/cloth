@@ -2,11 +2,13 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/outfit.dart';
+import '../../domain/entities/clothing_item.dart';
 
 import '../providers/outfit_providers.dart';
 import '../providers/clothing_item_providers.dart';
 import 'clothing_item_thumbnail.dart';
 import 'image_picker_widget.dart';
+import 'selected_clothing_item_badge.dart';
 
 class EditOutfitForm extends ConsumerStatefulWidget {
   final Outfit outfit;
@@ -20,10 +22,13 @@ class EditOutfitForm extends ConsumerStatefulWidget {
 class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
   final _formKey = GlobalKey<FormState>();
   final _notesController = TextEditingController();
+  final _searchController = TextEditingController();
   
   late DateTime _selectedDate;
   late List<String> _selectedClothingItemIds;
   Uint8List? _imageData;
+  String _searchQuery = '';
+  final Set<String> _selectedCategories = <String>{};
 
   @override
   void initState() {
@@ -37,6 +42,7 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
   @override
   void dispose() {
     _notesController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -63,6 +69,53 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
         newList.add(clothingItemId);
       }
       _selectedClothingItemIds = newList;
+    });
+  }
+
+  List<ClothingItem> _getSelectedClothingItems(List<ClothingItem> allItems) {
+    return allItems.where((item) => _selectedClothingItemIds.contains(item.id)).toList();
+  }
+
+  void _removeSelectedItem(ClothingItem item) {
+    setState(() {
+      _selectedClothingItemIds.remove(item.id);
+    });
+  }
+
+  List<ClothingItem> _filterClothingItems(List<ClothingItem> items) {
+    List<ClothingItem> filteredItems = items;
+    
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      filteredItems = filteredItems.where((item) =>
+          item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (item.brand?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+          item.category.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (item.subcategory?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
+      ).toList();
+    }
+    
+    // Filter by selected categories
+    if (_selectedCategories.isNotEmpty) {
+      filteredItems = filteredItems.where((item) =>
+          _selectedCategories.contains(item.category)
+      ).toList();
+    }
+    
+    return filteredItems;
+  }
+
+  Set<String> _getAvailableCategories(List<ClothingItem> items) {
+    return items.map((item) => item.category).toSet();
+  }
+
+  void _toggleCategory(String category) {
+    setState(() {
+      if (_selectedCategories.contains(category)) {
+        _selectedCategories.remove(category);
+      } else {
+        _selectedCategories.add(category);
+      }
     });
   }
 
@@ -139,23 +192,122 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
             ),
             const SizedBox(height: 16),
 
-            // Clothing items selection
-            Text(
-              'Clothing Items',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+            // Search bar
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search for clothing items...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                            _searchQuery = '';
+                          });
+                        },
+                      )
+                    : null,
+                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surface,
               ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Selected items display
+            clothingItemsAsync.when(
+              data: (clothingItems) {
+                final selectedItems = _getSelectedClothingItems(clothingItems);
+                return SelectedClothingItemsDisplay(
+                  selectedItems: selectedItems,
+                  onRemoveItem: _removeSelectedItem,
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 16),
+
+            // Category filter chips
+            clothingItemsAsync.when(
+              data: (clothingItems) {
+                final availableCategories = _getAvailableCategories(clothingItems);
+                if (availableCategories.isEmpty) return const SizedBox.shrink();
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Filter by Category',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: availableCategories.map((category) {
+                        final isSelected = _selectedCategories.contains(category);
+                        return FilterChip(
+                          label: Text(category),
+                          selected: isSelected,
+                          onSelected: (selected) => _toggleCategory(category),
+                          selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                          checkmarkColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          side: BorderSide(
+                            color: isSelected 
+                                ? Theme.of(context).colorScheme.primary 
+                                : Theme.of(context).colorScheme.outline,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    if (_selectedCategories.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _selectedCategories.clear();
+                          });
+                        },
+                        icon: const Icon(Icons.clear_all, size: 16),
+                        label: const Text('Clear all filters'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 16),
+
+            // Clothing items selection
+            const Text(
+              'Select Clothing Items',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             
             clothingItemsAsync.when(
               data: (clothingItems) {
-                if (clothingItems.isEmpty) {
+                final filteredItems = _filterClothingItems(clothingItems);
+                if (filteredItems.isEmpty) {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(32.0),
                       child: Text(
-                        'No clothing items available',
+                        'No clothing items match your search criteria',
                         style: TextStyle(fontStyle: FontStyle.italic),
                       ),
                     ),
@@ -163,7 +315,7 @@ class _EditOutfitFormState extends ConsumerState<EditOutfitForm> {
                 }
 
                 return Column(
-                  children: clothingItems.map((item) {
+                  children: filteredItems.map((item) {
                     final isSelected = _selectedClothingItemIds.contains(item.id);
                     return Card(
                       margin: const EdgeInsets.only(bottom: 8.0),

@@ -4,6 +4,7 @@ import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../providers/outfit_providers.dart';
 import '../providers/clothing_item_providers.dart';
+import 'selected_clothing_item_badge.dart';
 
 class AddOutfitForm extends ConsumerStatefulWidget {
   final DateTime? initialDate;
@@ -60,6 +61,16 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
         newList.add(clothingItemId);
       }
       _selectedClothingItemIds = newList;
+    });
+  }
+
+  List<ClothingItem> _getSelectedClothingItems(List<ClothingItem> allItems) {
+    return allItems.where((item) => _selectedClothingItemIds.contains(item.id)).toList();
+  }
+
+  void _removeSelectedItem(ClothingItem item) {
+    setState(() {
+      _selectedClothingItemIds.remove(item.id);
     });
   }
 
@@ -189,6 +200,20 @@ class _AddOutfitFormState extends ConsumerState<AddOutfitForm> {
                   _searchQuery = value;
                 });
               },
+            ),
+            const SizedBox(height: 16),
+
+            // Selected items display
+            clothingItemsAsync.when(
+              data: (clothingItems) {
+                final selectedItems = _getSelectedClothingItems(clothingItems);
+                return SelectedClothingItemsDisplay(
+                  selectedItems: selectedItems,
+                  onRemoveItem: _removeSelectedItem,
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (error, stack) => const SizedBox.shrink(),
             ),
             const SizedBox(height: 16),
 
