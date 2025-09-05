@@ -71,7 +71,7 @@ class CurrencyFormatter {
       case 'VND':
         return '₫${price.toStringAsFixed(0)}'; // VND typically doesn't use decimal places
       default:
-        return '${currency} ${price.toStringAsFixed(2)}';
+        return '$currency ${price.toStringAsFixed(2)}';
     }
   }
 

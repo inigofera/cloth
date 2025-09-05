@@ -178,5 +178,18 @@ class HiveOutfitRepository implements OutfitRepository {
   Future<void> flush() async {
     await _ensureDataPersistence();
   }
+
+  @override
+  Future<void> deleteAllOutfits() async {
+    try {
+      LoggerService.info('Hard deleting all outfits...');
+      await _box.clear();
+      await _ensureDataPersistence();
+      LoggerService.info('All outfits hard deleted successfully');
+    } catch (e) {
+      LoggerService.error('Failed to hard delete all outfits: $e');
+      rethrow;
+    }
+  }
 }
 

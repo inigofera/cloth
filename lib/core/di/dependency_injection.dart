@@ -6,6 +6,7 @@ import '../../domain/repositories/outfit_repository.dart';
 import '../../domain/usecases/clothing_item_usecases.dart';
 import '../../domain/usecases/outfit_usecases.dart';
 import '../../core/services/data_persistence_service.dart';
+import '../../core/services/data_deletion_service.dart';
 
 /// Global service locator instance
 final GetIt getIt = GetIt.instance;
@@ -47,6 +48,13 @@ class DependencyInjection {
   static void _registerServices() {
     getIt.registerLazySingleton<DataPersistenceService>(
       () => DataPersistenceService(
+        getIt<ClothingItemRepository>(),
+        getIt<OutfitRepository>(),
+      ),
+    );
+    
+    getIt.registerLazySingleton<DataDeletionService>(
+      () => DataDeletionService(
         getIt<ClothingItemRepository>(),
         getIt<OutfitRepository>(),
       ),

@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../../domain/entities/outfit.dart';
+import 'logger_service.dart';
 
 /// Service for exporting and importing app data
 class DataExportService {
@@ -118,7 +119,7 @@ class DataExportService {
           clothingItems.add(_clothingItemFromJson(itemData as Map<String, dynamic>));
         } catch (e) {
           // Log error but continue with other items
-          print('Error importing clothing item: $e');
+          LoggerService.error('Error importing clothing item: $e');
         }
       }
       
@@ -129,7 +130,7 @@ class DataExportService {
           outfits.add(_outfitFromJson(outfitData as Map<String, dynamic>));
         } catch (e) {
           // Log error but continue with other outfits
-          print('Error importing outfit: $e');
+          LoggerService.error('Error importing outfit: $e');
         }
       }
       
@@ -165,7 +166,7 @@ class DataExportService {
       'laundryImpact': item.laundryImpact,
       'repairable': item.repairable,
       'notes': item.notes,
-      'imageData': item.imageData != null ? base64Encode(item.imageData!) : null,
+      'imageData': _safeEncodeImageData(item.imageData),
       'createdAt': item.createdAt.toIso8601String(),
       'updatedAt': item.updatedAt.toIso8601String(),
       'isActive': item.isActive,
@@ -192,9 +193,7 @@ class DataExportService {
       laundryImpact: json['laundryImpact'] as String?,
       repairable: json['repairable'] as bool?,
       notes: json['notes'] as String?,
-      imageData: json['imageData'] != null 
-          ? base64Decode(json['imageData'] as String) 
-          : null,
+      imageData: _safeDecodeImageData(json['imageData']),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isActive: json['isActive'] as bool? ?? true,
@@ -209,7 +208,7 @@ class DataExportService {
       'date': outfit.date.toIso8601String(),
       'clothingItemIds': outfit.clothingItemIds,
       'notes': outfit.notes,
-      'imageData': outfit.imageData != null ? base64Encode(outfit.imageData!) : null,
+      'imageData': _safeEncodeImageData(outfit.imageData),
       'createdAt': outfit.createdAt.toIso8601String(),
       'updatedAt': outfit.updatedAt.toIso8601String(),
       'isActive': outfit.isActive,
@@ -223,15 +222,42 @@ class DataExportService {
       date: DateTime.parse(json['date'] as String),
       clothingItemIds: List<String>.from(json['clothingItemIds'] as List),
       notes: json['notes'] as String?,
-      imageData: json['imageData'] != null 
-          ? base64Decode(json['imageData'] as String) 
-          : null,
+      imageData: _safeDecodeImageData(json['imageData']),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       isActive: json['isActive'] as bool? ?? true,
     );
   }
   
+  /// Safely decodes image data from JSON, handling empty strings and null values
+  static Uint8List? _safeDecodeImageData(dynamic imageData) {
+    if (imageData == null) return null;
+    
+    final imageDataString = imageData as String?;
+    if (imageDataString == null || imageDataString.isEmpty) return null;
+    
+    try {
+      return base64Decode(imageDataString);
+    } catch (e) {
+      // If base64 decoding fails, treat as no image
+      LoggerService.warning('Failed to decode image data: $e');
+      return null;
+    }
+  }
+
+  /// Safely encodes image data to JSON, handling null and empty values
+  static String? _safeEncodeImageData(Uint8List? imageData) {
+    if (imageData == null || imageData.isEmpty) return null;
+    
+    try {
+      return base64Encode(imageData);
+    } catch (e) {
+      // If base64 encoding fails, treat as no image
+      LoggerService.warning('Failed to encode image data: $e');
+      return null;
+    }
+  }
+
   /// Escapes CSV field values
   static String _escapeCsvField(String value) {
     if (value.contains(',') || value.contains('"') || value.contains('\n')) {

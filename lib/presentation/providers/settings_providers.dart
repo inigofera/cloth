@@ -96,6 +96,11 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
   void updateCurrency(String value) {
     state = state.copyWith(currency: value);
   }
+
+  /// Resets all settings to their default values
+  void resetToDefaults() {
+    state = const SettingsState();
+  }
 }
 
 /// Provider for settings state

@@ -105,4 +105,7 @@ abstract class ClothingItemRepository {
   
   /// Ensures all pending data is flushed to disk
   Future<void> flush();
+  
+  /// Hard deletes all clothing items (for complete data deletion)
+  Future<void> deleteAllClothingItems();
 }

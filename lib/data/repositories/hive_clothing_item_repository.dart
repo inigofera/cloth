@@ -387,4 +387,17 @@ class HiveClothingItemRepository implements ClothingItemRepository {
         .toSet()
         .toList();
   }
+
+  @override
+  Future<void> deleteAllClothingItems() async {
+    try {
+      LoggerService.info('Hard deleting all clothing items...');
+      await _box.clear();
+      await _ensureDataPersistence();
+      LoggerService.info('All clothing items hard deleted successfully');
+    } catch (e) {
+      LoggerService.error('Failed to hard delete all clothing items: $e');
+      rethrow;
+    }
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../core/services/data_export_service.dart';
+import '../../core/services/logger_service.dart';
 import '../../core/di/dependency_injection.dart';
 import '../../domain/repositories/clothing_item_repository.dart';
 import '../../domain/repositories/outfit_repository.dart';
@@ -308,7 +309,7 @@ class _DataExportImportWidgetState extends ConsumerState<DataExportImportWidget>
         try {
           await clothingItemRepo.addClothingItem(item);
         } catch (e) {
-          print('Error saving clothing item ${item.name}: $e');
+          LoggerService.error('Error saving clothing item ${item.name}: $e');
           // Continue with other items even if one fails
         }
       }
@@ -318,14 +319,14 @@ class _DataExportImportWidgetState extends ConsumerState<DataExportImportWidget>
         try {
           await outfitRepo.addOutfit(outfit);
         } catch (e) {
-          print('Error saving outfit ${outfit.id}: $e');
+          LoggerService.error('Error saving outfit ${outfit.id}: $e');
           // Continue with other outfits even if one fails
         }
       }
       
-      print('Successfully saved ${result.clothingItems.length} clothing items and ${result.outfits.length} outfits');
+      LoggerService.info('Successfully saved ${result.clothingItems.length} clothing items and ${result.outfits.length} outfits');
     } catch (e) {
-      print('Error saving imported data: $e');
+      LoggerService.error('Error saving imported data: $e');
       rethrow;
     }
   }

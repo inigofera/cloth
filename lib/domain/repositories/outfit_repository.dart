@@ -44,5 +44,8 @@ abstract class OutfitRepository {
   
   /// Ensures all pending data is flushed to disk
   Future<void> flush();
+  
+  /// Hard deletes all outfits (for complete data deletion)
+  Future<void> deleteAllOutfits();
 }
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../core/services/data_export_service.dart';
+import '../../../core/services/data_deletion_service.dart';
+import '../../../core/services/logger_service.dart';
 import '../../../core/di/dependency_injection.dart';
 import '../../../domain/repositories/clothing_item_repository.dart';
 import '../../../domain/repositories/outfit_repository.dart';
@@ -251,9 +253,13 @@ class DataSettings extends ConsumerWidget {
             if (importResult.success) {
               // Actually save the imported data to the database
               await _saveImportedData(importResult);
-              _showImportSuccessDialog(context, importResult);
+              if (context.mounted) {
+                _showImportSuccessDialog(context, importResult);
+              }
             } else {
-              _showImportErrorDialog(context, importResult.error ?? 'Unknown error');
+              if (context.mounted) {
+                _showImportErrorDialog(context, importResult.error ?? 'Unknown error');
+              }
             }
           }
         }
@@ -277,7 +283,7 @@ class DataSettings extends ConsumerWidget {
         try {
           await clothingItemRepo.addClothingItem(item);
         } catch (e) {
-          print('Error saving clothing item ${item.name}: $e');
+          LoggerService.error('Error saving clothing item ${item.name}: $e');
           // Continue with other items even if one fails
         }
       }
@@ -287,14 +293,14 @@ class DataSettings extends ConsumerWidget {
         try {
           await outfitRepo.addOutfit(outfit);
         } catch (e) {
-          print('Error saving outfit ${outfit.id}: $e');
+          LoggerService.error('Error saving outfit ${outfit.id}: $e');
           // Continue with other outfits even if one fails
         }
       }
       
-      print('Successfully saved ${result.clothingItems.length} clothing items and ${result.outfits.length} outfits');
+      LoggerService.info('Successfully saved ${result.clothingItems.length} clothing items and ${result.outfits.length} outfits');
     } catch (e) {
-      print('Error saving imported data: $e');
+      LoggerService.error('Error saving imported data: $e');
       rethrow;
     }
   }
@@ -359,13 +365,7 @@ class DataSettings extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              // TODO: Implement data deletion
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('All data deleted')),
-              );
-            },
+            onPressed: () => _confirmDeleteAllData(context),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -374,6 +374,85 @@ class DataSettings extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  /// Confirms and executes the deletion of all data
+  Future<void> _confirmDeleteAllData(BuildContext context) async {
+    // Close the dialog first
+    Navigator.of(context).pop();
+    
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Deleting all data...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      // Get the data deletion service
+      final dataDeletionService = getIt<DataDeletionService>();
+      
+      // Execute the deletion
+      final success = await dataDeletionService.deleteAllData();
+      
+      // Check if the context is still mounted before using it
+      if (!context.mounted) return;
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      if (success) {
+        // Show success message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('All data has been successfully deleted'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+        
+        // Refresh the providers to reflect the empty state
+        // This will trigger a rebuild of the UI
+        // Note: The providers will automatically show empty lists
+        
+      } else {
+        // Show error message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to delete data. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+      
+    } catch (e) {
+      // Check if the context is still mounted before using it
+      if (!context.mounted) return;
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      // Show error message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -418,13 +497,13 @@ class _ExportDataDialog extends ConsumerWidget {
       final clothingItemsAsync = ref.read(activeClothingItemsProvider);
       final outfitsAsync = ref.read(outfitNotifierProvider);
 
-      final clothingItems = await clothingItemsAsync.when(
+      final clothingItems = clothingItemsAsync.when(
         data: (items) => items,
         loading: () => <ClothingItem>[],
         error: (_, __) => <ClothingItem>[],
       );
 
-      final outfits = await outfitsAsync.when(
+      final outfits = outfitsAsync.when(
         data: (items) => items,
         loading: () => <Outfit>[],
         error: (_, __) => <Outfit>[],
