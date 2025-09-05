@@ -65,7 +65,7 @@ class DataSettings extends ConsumerWidget {
                 title: 'Import data',
                 subtitle: 'Import data from backup file',
                 onTap: () {
-                  _importData(context);
+                  _importData(context, ref);
                 },
               ),
             ],
@@ -88,7 +88,7 @@ class DataSettings extends ConsumerWidget {
                 title: 'Delete all data',
                 subtitle: 'Permanently remove all your data',
                 onTap: () {
-                  _showDeleteDataDialog(context);
+                  _showDeleteDataDialog(context, ref);
                 },
               ),
             ],
@@ -227,11 +227,11 @@ class DataSettings extends ConsumerWidget {
     );
   }
 
-  void _importData(BuildContext context) {
-    _performImport(context);
+  void _importData(BuildContext context, WidgetRef ref) {
+    _performImport(context, ref);
   }
 
-  Future<void> _performImport(BuildContext context) async {
+  Future<void> _performImport(BuildContext context, WidgetRef ref) async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -252,7 +252,7 @@ class DataSettings extends ConsumerWidget {
           if (context.mounted) {
             if (importResult.success) {
               // Actually save the imported data to the database
-              await _saveImportedData(importResult);
+              await _saveImportedData(importResult, ref);
               if (context.mounted) {
                 _showImportSuccessDialog(context, importResult);
               }
@@ -272,7 +272,7 @@ class DataSettings extends ConsumerWidget {
   }
 
   /// Saves imported data to the database
-  Future<void> _saveImportedData(ImportResult result) async {
+  Future<void> _saveImportedData(ImportResult result, WidgetRef ref) async {
     try {
       // Get repositories
       final clothingItemRepo = getIt<ClothingItemRepository>();
@@ -298,6 +298,11 @@ class DataSettings extends ConsumerWidget {
         }
       }
       
+      // Invalidate providers to refresh the UI with new data
+      ref.invalidate(activeClothingItemsProvider);
+      ref.invalidate(outfitNotifierProvider);
+      ref.invalidate(activeOutfitsProvider);
+      
       LoggerService.info('Successfully saved ${result.clothingItems.length} clothing items and ${result.outfits.length} outfits');
     } catch (e) {
       LoggerService.error('Error saving imported data: $e');
@@ -320,7 +325,7 @@ class DataSettings extends ConsumerWidget {
             Text('• ${result.outfits.length} outfits'),
             const SizedBox(height: 8),
             const Text(
-              'Note: You may need to refresh the app to see the imported data.',
+              'The imported data is now available in your app.',
               style: TextStyle(fontStyle: FontStyle.italic),
             ),
           ],
@@ -351,7 +356,7 @@ class DataSettings extends ConsumerWidget {
     );
   }
 
-  void _showDeleteDataDialog(BuildContext context) {
+  void _showDeleteDataDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -365,7 +370,7 @@ class DataSettings extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () => _confirmDeleteAllData(context),
+            onPressed: () => _confirmDeleteAllData(context, ref),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -377,7 +382,7 @@ class DataSettings extends ConsumerWidget {
   }
 
   /// Confirms and executes the deletion of all data
-  Future<void> _confirmDeleteAllData(BuildContext context) async {
+  Future<void> _confirmDeleteAllData(BuildContext context, WidgetRef ref) async {
     // Close the dialog first
     Navigator.of(context).pop();
     
@@ -409,20 +414,21 @@ class DataSettings extends ConsumerWidget {
       // Close loading dialog
       Navigator.of(context).pop();
       
-      if (success) {
-        // Show success message
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('All data has been successfully deleted'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-        
-        // Refresh the providers to reflect the empty state
-        // This will trigger a rebuild of the UI
-        // Note: The providers will automatically show empty lists
+             if (success) {
+         // Invalidate providers to refresh the UI with empty state
+         ref.invalidate(activeClothingItemsProvider);
+         ref.invalidate(outfitNotifierProvider);
+         ref.invalidate(activeOutfitsProvider);
+         
+         // Show success message
+         if (context.mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(
+               content: Text('All data has been successfully deleted'),
+               backgroundColor: Colors.green,
+             ),
+           );
+         }
         
       } else {
         // Show error message
