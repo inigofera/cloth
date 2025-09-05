@@ -4,6 +4,7 @@ import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../providers/clothing_item_providers.dart';
 import 'edit_outfit_form.dart';
+import 'add_outfit_form.dart';
 import 'clothing_item_thumbnail.dart';
 
 /// Calendar view for displaying outfits in a monthly format
@@ -447,12 +448,24 @@ class _OutfitCalendarViewState extends ConsumerState<OutfitCalendarView> {
         .where((outfit) => _isSameDay(outfit.date, date))
         .toList();
     
-    if (outfitsForDate.isEmpty) return;
+    if (outfitsForDate.isEmpty) {
+      // If no outfits for this date, open the add outfit form
+      _showAddOutfitForm(date);
+      return;
+    }
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (context) => _buildOutfitsBottomSheet(date, outfitsForDate),
+    );
+  }
+
+  void _showAddOutfitForm(DateTime date) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => AddOutfitForm(initialDate: date),
+      ),
     );
   }
 
