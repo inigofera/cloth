@@ -11,7 +11,8 @@ class AddClothingItemForm extends ConsumerStatefulWidget {
   const AddClothingItemForm({super.key});
 
   @override
-  ConsumerState<AddClothingItemForm> createState() => _AddClothingItemFormState();
+  ConsumerState<AddClothingItemForm> createState() =>
+      _AddClothingItemFormState();
 }
 
 class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
@@ -27,7 +28,7 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
   final _originController = TextEditingController();
   final _laundryImpactController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   DateTime? _ownedSince;
   bool? _repairable;
   Uint8List? _imageData;
@@ -40,27 +41,51 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
     'Footwear',
     'Formal Wear',
     'Sportswear',
-    'Other'
+    'Other',
   ];
 
   final List<String> _subcategories = [
-    'T-Shirt', 'Polo', 'Shirt', 'Sweater', 'Hoodie', 'Jacket', 'Coat',
-    'Jeans', 'Pants', 'Shorts', 'Skirt', 'Dress',
-    'Belt', 'Watch', 'Jewelry', 'Scarf', 'Hat', 'Gloves',
-    'Sneakers', 'Boots', 'Shoes', 'Sandals'
+    'T-Shirt',
+    'Polo',
+    'Shirt',
+    'Sweater',
+    'Hoodie',
+    'Jacket',
+    'Coat',
+    'Jeans',
+    'Pants',
+    'Shorts',
+    'Skirt',
+    'Dress',
+    'Belt',
+    'Watch',
+    'Jewelry',
+    'Scarf',
+    'Hat',
+    'Gloves',
+    'Sneakers',
+    'Boots',
+    'Shoes',
+    'Sandals',
   ];
 
   final List<String> _seasons = [
-    'Spring', 'Summer', 'Fall', 'Winter', 'All-Season'
+    'Spring',
+    'Summer',
+    'Fall',
+    'Winter',
+    'All-Season',
   ];
 
   final List<String> _origins = [
-    'Bought New', '2nd Hand', 'Gift', 'Handmade', 'Other'
+    'Bought New',
+    '2nd Hand',
+    'Gift',
+    'Handmade',
+    'Other',
   ];
 
-  final List<String> _laundryImpacts = [
-    'Nothing', 'Low', 'Medium', 'High'
-  ];
+  final List<String> _laundryImpacts = ['Nothing', 'Low', 'Medium', 'High'];
 
   @override
   void dispose() {
@@ -98,24 +123,42 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
         final item = ClothingItem.create(
           name: _nameController.text.trim(),
           category: _categoryController.text.trim(),
-          subcategory: _subcategoryController.text.trim().isEmpty ? null : _subcategoryController.text.trim(),
-          brand: _brandController.text.trim().isEmpty ? null : _brandController.text.trim(),
-          color: _colorController.text.trim().isEmpty ? null : _colorController.text.trim(),
-          materials: _materialsController.text.trim().isEmpty ? null : _materialsController.text.trim(),
-          season: _seasonController.text.trim().isEmpty ? null : _seasonController.text.trim(),
-          purchasePrice: _purchasePriceController.text.trim().isEmpty 
-              ? null 
+          subcategory: _subcategoryController.text.trim().isEmpty
+              ? null
+              : _subcategoryController.text.trim(),
+          brand: _brandController.text.trim().isEmpty
+              ? null
+              : _brandController.text.trim(),
+          color: _colorController.text.trim().isEmpty
+              ? null
+              : _colorController.text.trim(),
+          materials: _materialsController.text.trim().isEmpty
+              ? null
+              : _materialsController.text.trim(),
+          season: _seasonController.text.trim().isEmpty
+              ? null
+              : _seasonController.text.trim(),
+          purchasePrice: _purchasePriceController.text.trim().isEmpty
+              ? null
               : double.tryParse(_purchasePriceController.text.trim()),
           ownedSince: _ownedSince,
-          origin: _originController.text.trim().isEmpty ? null : _originController.text.trim(),
-          laundryImpact: _laundryImpactController.text.trim().isEmpty ? null : _laundryImpactController.text.trim(),
+          origin: _originController.text.trim().isEmpty
+              ? null
+              : _originController.text.trim(),
+          laundryImpact: _laundryImpactController.text.trim().isEmpty
+              ? null
+              : _laundryImpactController.text.trim(),
           repairable: _repairable,
-          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          notes: _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
           imageData: _imageData,
         );
 
-        await ref.read(clothingItemNotifierProvider.notifier).addClothingItem(item);
-        
+        await ref
+            .read(clothingItemNotifierProvider.notifier)
+            .addClothingItem(item);
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Clothing item added successfully!')),
@@ -124,9 +167,9 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       }
     }
@@ -135,9 +178,7 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('cloth diary'),
-      ),
+      appBar: AppBar(title: const Text('cloth')),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -158,17 +199,14 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
                 labelText: 'Category *',
                 hintText: 'Select category',
               ),
               items: _categories.map((category) {
-                return DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
-                );
+                return DropdownMenuItem(value: category, child: Text(category));
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -248,10 +286,7 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
                 hintText: 'Select season',
               ),
               items: _seasons.map((season) {
-                return DropdownMenuItem(
-                  value: season,
-                  child: Text(season),
-                );
+                return DropdownMenuItem(value: season, child: Text(season));
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -267,7 +302,8 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
                   child: Consumer(
                     builder: (context, ref, child) {
                       final currency = ref.watch(currencyProvider);
-                      final currencySymbol = CurrencyFormatter.getCurrencySymbol(currency);
+                      final currencySymbol =
+                          CurrencyFormatter.getCurrencySymbol(currency);
                       return TextFormField(
                         controller: _purchasePriceController,
                         decoration: InputDecoration(
@@ -311,7 +347,9 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
                 Expanded(
                   child: ListTile(
                     title: const Text('Owned Since'),
-                    subtitle: Text(_ownedSince?.toString().split(' ')[0] ?? 'Not set'),
+                    subtitle: Text(
+                      _ownedSince?.toString().split(' ')[0] ?? 'Not set',
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.calendar_today),
                       onPressed: () => _selectDate(context),
@@ -328,10 +366,7 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
                 hintText: 'How did you get this item?',
               ),
               items: _origins.map((origin) {
-                return DropdownMenuItem(
-                  value: origin,
-                  child: Text(origin),
-                );
+                return DropdownMenuItem(value: origin, child: Text(origin));
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -347,10 +382,7 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
                 hintText: 'Environmental impact of washing',
               ),
               items: _laundryImpacts.map((impact) {
-                return DropdownMenuItem(
-                  value: impact,
-                  child: Text(impact),
-                );
+                return DropdownMenuItem(value: impact, child: Text(impact));
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -362,7 +394,11 @@ class _AddClothingItemFormState extends ConsumerState<AddClothingItemForm> {
 
             ListTile(
               title: const Text('Repairable'),
-              subtitle: Text(_repairable == null ? 'Not specified' : (_repairable! ? 'Yes' : 'No')),
+              subtitle: Text(
+                _repairable == null
+                    ? 'Not specified'
+                    : (_repairable! ? 'Yes' : 'No'),
+              ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

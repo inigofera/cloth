@@ -25,13 +25,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _getTitleForIndex(int index) {
     switch (index) {
       case 0:
-        return 'cloth diary';
+        return 'cloth';
       case 1:
-        return 'cloth diary';
+        return 'cloth';
       case 2:
-        return 'cloth diary';
+        return 'cloth';
       default:
-        return 'cloth diary';
+        return 'cloth';
     }
   }
 
@@ -46,9 +46,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: const Icon(Icons.settings),
             onPressed: () {
               Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
               );
             },
           ),
@@ -67,10 +65,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: Icon(Icons.checkroom),
             label: 'Clothing',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.style),
-            label: 'Outfits',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.style), label: 'Outfits'),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics),
             label: 'Insights',

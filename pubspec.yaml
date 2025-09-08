@@ -61,6 +61,9 @@ dependencies:
   # SVG support
   flutter_svg: ^2.0.9
   
+  # URL launcher
+  url_launcher: ^6.2.2
+  
 
 dev_dependencies:
   flutter_test:

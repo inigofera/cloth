@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_constants.dart';
 
 /// About settings category
@@ -59,6 +60,14 @@ class _AboutSettingsState extends ConsumerState<AboutSettings> {
               ),
               _buildListTile(
                 context: context,
+                title: 'Follow Development',
+                subtitle: 'View source code and contribute',
+                onTap: () {
+                  _followDevelopment(context);
+                },
+              ),
+              _buildListTile(
+                context: context,
                 title: 'Rate the App',
                 subtitle: 'Share your feedback',
                 onTap: () {
@@ -97,6 +106,7 @@ class _AboutSettingsState extends ConsumerState<AboutSettings> {
               ),
             ],
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -109,14 +119,9 @@ class _AboutSettingsState extends ConsumerState<AboutSettings> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            Icon(
-              Icons.checkroom,
-              size: 64,
-              color: Theme.of(context).colorScheme.primary,
-            ),
             const SizedBox(height: 16),
             Text(
-              'Cloth Diary',
+              'cloth',
               style: Theme.of(
                 context,
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -229,11 +234,50 @@ class _AboutSettingsState extends ConsumerState<AboutSettings> {
     );
   }
 
-  void _contactSupport(BuildContext context) {
-    // TODO: Implement contact support
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Contact support feature coming soon')),
-    );
+  Future<void> _contactSupport(BuildContext context) async {
+    final Uri url = Uri.parse('https://github.com/inigofera/cloth/issues');
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open GitHub issues page')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening GitHub issues: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _followDevelopment(BuildContext context) async {
+    final Uri url = Uri.parse('https://github.com/inigofera/cloth');
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open GitHub repository page'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening GitHub repository: $e')),
+        );
+      }
+    }
   }
 
   void _rateApp(BuildContext context) {
