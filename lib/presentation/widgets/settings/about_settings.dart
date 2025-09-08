@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../../core/constants/app_constants.dart';
 
 /// About settings category
 class AboutSettings extends ConsumerStatefulWidget {
@@ -116,13 +117,13 @@ class _AboutSettingsState extends ConsumerState<AboutSettings> {
             const SizedBox(height: 16),
             Text(
               'Cloth Diary',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              _packageInfo?.version ?? 'Version 1.0.0',
+              _packageInfo?.version ?? 'Version ${AppConstants.appVersion}',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -198,13 +199,17 @@ class _AboutSettingsState extends ConsumerState<AboutSettings> {
                 'Q: How do I add a new clothing item?',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              Text('A: Tap the + button on the Clothing tab and fill in the details.'),
+              Text(
+                'A: Tap the + button on the Clothing tab and fill in the details.',
+              ),
               SizedBox(height: 12),
               Text(
                 'Q: How do I create an outfit?',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
-              Text('A: Go to the Outfits tab and tap the + button to create a new outfit.'),
+              Text(
+                'A: Go to the Outfits tab and tap the + button to create a new outfit.',
+              ),
               SizedBox(height: 12),
               Text(
                 'Q: Can I export my data?',

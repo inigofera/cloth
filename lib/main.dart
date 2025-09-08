@@ -5,18 +5,18 @@ import 'core/di/dependency_injection.dart';
 import 'core/services/logger_service.dart';
 import 'data/models/clothing_item_model.dart';
 import 'data/models/outfit_model.dart';
-import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Hive
   await Hive.initFlutter();
-  
+
   // Register Hive adapters
   Hive.registerAdapter(ClothingItemModelAdapter());
   Hive.registerAdapter(OutfitModelAdapter());
-  
+
   // Initialize dependency injection with error handling
   try {
     await DependencyInjection.setup();
@@ -25,7 +25,7 @@ void main() async {
     LoggerService.warning('Dependency injection setup failed: $e');
     LoggerService.warning('App will continue but some features may not work');
   }
-  
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
