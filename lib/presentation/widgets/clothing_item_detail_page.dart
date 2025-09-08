@@ -16,7 +16,7 @@ class ClothingItemDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch for changes to clothing items to get the most up-to-date data
     final clothingItemsAsync = ref.watch(activeClothingItemsProvider);
-    
+
     return clothingItemsAsync.when(
       data: (clothingItems) {
         // Find the current item data (in case it was updated)
@@ -24,7 +24,7 @@ class ClothingItemDetailPage extends ConsumerWidget {
           (clothingItem) => clothingItem.id == item.id,
           orElse: () => item, // Fallback to original item if not found
         );
-        
+
         return _buildDetailPage(context, ref, currentItem);
       },
       loading: () => _buildDetailPage(context, ref, item),
@@ -32,7 +32,11 @@ class ClothingItemDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailPage(BuildContext context, WidgetRef ref, ClothingItem currentItem) {
+  Widget _buildDetailPage(
+    BuildContext context,
+    WidgetRef ref,
+    ClothingItem currentItem,
+  ) {
     return Scaffold(
       appBar: AppBar(
         title: Text(currentItem.name),
@@ -58,23 +62,23 @@ class ClothingItemDetailPage extends ConsumerWidget {
             // Image section
             _buildImageSection(context, currentItem),
             const SizedBox(height: 24),
-            
+
             // Basic information
             _buildBasicInfoSection(context, currentItem),
             const SizedBox(height: 24),
-            
+
             // Detailed information
             _buildDetailedInfoSection(context, currentItem),
             const SizedBox(height: 24),
-            
+
             // Purchase information
             _buildPurchaseInfoSection(context, currentItem),
             const SizedBox(height: 24),
-            
+
             // Usage statistics
             _buildUsageStatsSection(context, currentItem),
             const SizedBox(height: 24),
-            
+
             // Notes section
             if (currentItem.notes != null && currentItem.notes!.isNotEmpty) ...[
               _buildNotesSection(context, currentItem),
@@ -98,10 +102,7 @@ class ClothingItemDetailPage extends ConsumerWidget {
         child: currentItem.imageData != null
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.memory(
-                  currentItem.imageData!,
-                  fit: BoxFit.cover,
-                ),
+                child: Image.memory(currentItem.imageData!, fit: BoxFit.cover),
               )
             : Container(
                 decoration: BoxDecoration(
@@ -131,7 +132,10 @@ class ClothingItemDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBasicInfoSection(BuildContext context, ClothingItem currentItem) {
+  Widget _buildBasicInfoSection(
+    BuildContext context,
+    ClothingItem currentItem,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -140,9 +144,9 @@ class ClothingItemDetailPage extends ConsumerWidget {
           children: [
             Text(
               'Basic Information',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             _buildInfoRow('Name', currentItem.name),
@@ -163,7 +167,10 @@ class ClothingItemDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailedInfoSection(BuildContext context, ClothingItem currentItem) {
+  Widget _buildDetailedInfoSection(
+    BuildContext context,
+    ClothingItem currentItem,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -172,9 +179,9 @@ class ClothingItemDetailPage extends ConsumerWidget {
           children: [
             Text(
               'Details',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             if (currentItem.origin != null)
@@ -197,7 +204,10 @@ class ClothingItemDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPurchaseInfoSection(BuildContext context, ClothingItem currentItem) {
+  Widget _buildPurchaseInfoSection(
+    BuildContext context,
+    ClothingItem currentItem,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -206,9 +216,9 @@ class ClothingItemDetailPage extends ConsumerWidget {
           children: [
             Text(
               'Purchase Information',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             if (currentItem.purchasePrice != null)
@@ -217,7 +227,10 @@ class ClothingItemDetailPage extends ConsumerWidget {
                   final currency = ref.watch(currencyProvider);
                   return _buildInfoRow(
                     'Purchase Price',
-                    CurrencyFormatter.formatPrice(currentItem.purchasePrice!, currency),
+                    CurrencyFormatter.formatPrice(
+                      currentItem.purchasePrice!,
+                      currency,
+                    ),
                   );
                 },
               ),
@@ -225,7 +238,8 @@ class ClothingItemDetailPage extends ConsumerWidget {
               Consumer(
                 builder: (context, ref, child) {
                   final currency = ref.watch(currencyProvider);
-                  final costPerWear = currentItem.purchasePrice! / currentItem.wearCount;
+                  final costPerWear =
+                      currentItem.purchasePrice! / currentItem.wearCount;
                   return _buildInfoRow(
                     'Cost Per Wear',
                     CurrencyFormatter.formatPrice(costPerWear, currency),
@@ -238,7 +252,10 @@ class ClothingItemDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildUsageStatsSection(BuildContext context, ClothingItem currentItem) {
+  Widget _buildUsageStatsSection(
+    BuildContext context,
+    ClothingItem currentItem,
+  ) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -247,15 +264,12 @@ class ClothingItemDetailPage extends ConsumerWidget {
           children: [
             Text(
               'Usage Statistics',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(
-              'Times Worn',
-              currentItem.wearCount.toString(),
-            ),
+            _buildInfoRow('Times Worn', currentItem.wearCount.toString()),
             _buildInfoRow(
               'Last Updated',
               '${currentItem.updatedAt.day}/${currentItem.updatedAt.month}/${currentItem.updatedAt.year}',
@@ -279,9 +293,9 @@ class ClothingItemDetailPage extends ConsumerWidget {
           children: [
             Text(
               'Notes',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Container(
@@ -338,7 +352,11 @@ class ClothingItemDetailPage extends ConsumerWidget {
     );
   }
 
-  void _showDeleteDialog(BuildContext context, WidgetRef ref, ClothingItem currentItem) {
+  void _showDeleteDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ClothingItem currentItem,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -351,7 +369,9 @@ class ClothingItemDetailPage extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              ref.read(clothingItemNotifierProvider.notifier).deleteClothingItem(currentItem.id);
+              ref
+                  .read(clothingItemNotifierProvider.notifier)
+                  .deleteClothingItem(currentItem.id);
               Navigator.of(context).pop(); // Close dialog
               Navigator.of(context).pop(); // Go back to items list
             },

@@ -3,6 +3,7 @@ import '../../domain/entities/outfit.dart';
 import '../../domain/entities/clothing_item.dart';
 import '../../data/repositories/hive_outfit_repository.dart';
 import '../../data/repositories/hive_clothing_item_repository.dart';
+import 'clothing_item_providers.dart';
 
 /// Provider for the outfit repository
 final outfitRepositoryProvider = Provider<HiveOutfitRepository>((ref) {
@@ -10,7 +11,9 @@ final outfitRepositoryProvider = Provider<HiveOutfitRepository>((ref) {
 });
 
 /// Provider for the clothing item repository
-final clothingItemRepositoryProvider = Provider<HiveClothingItemRepository>((ref) {
+final clothingItemRepositoryProvider = Provider<HiveClothingItemRepository>((
+  ref,
+) {
   return HiveClothingItemRepository();
 });
 
@@ -18,33 +21,34 @@ final clothingItemRepositoryProvider = Provider<HiveClothingItemRepository>((ref
 final repositoriesReadyProvider = FutureProvider<void>((ref) async {
   final outfitRepo = ref.read(outfitRepositoryProvider);
   final clothingRepo = ref.read(clothingItemRepositoryProvider);
-  
+
   await outfitRepo.initialize();
   await clothingRepo.initialize();
 });
 
 /// Notifier provider for managing outfit state
-final outfitNotifierProvider = StateNotifierProvider<OutfitNotifier, AsyncValue<List<Outfit>>>((ref) {
-  // Wait for repositories to be ready before creating the notifier
-  ref.watch(repositoriesReadyProvider);
-  
-  final repository = ref.watch(outfitRepositoryProvider);
-  return OutfitNotifier(repository);
-});
+final outfitNotifierProvider =
+    StateNotifierProvider<OutfitNotifier, AsyncValue<List<Outfit>>>((ref) {
+      // Wait for repositories to be ready before creating the notifier
+      ref.watch(repositoriesReadyProvider);
+
+      final repository = ref.watch(outfitRepositoryProvider);
+      return OutfitNotifier(repository, ref);
+    });
 
 /// Provider for all outfits (no date filtering)
 final allOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
   // Wait for repositories to be ready
   ref.watch(repositoriesReadyProvider);
-  
+
   final outfitsAsync = ref.watch(outfitNotifierProvider);
-  
+
   return outfitsAsync.when(
     data: (outfits) {
       // Show all outfits, sorted by date (newest first)
       final sortedOutfits = List<Outfit>.from(outfits)
         ..sort((a, b) => b.date.compareTo(a.date));
-      
+
       return AsyncValue.data(sortedOutfits);
     },
     loading: () => const AsyncValue.loading(),
@@ -56,19 +60,19 @@ final allOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
 final activeOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
   // Wait for repositories to be ready
   ref.watch(repositoriesReadyProvider);
-  
+
   final outfitsAsync = ref.watch(outfitNotifierProvider);
-  
+
   return outfitsAsync.when(
     data: (outfits) {
       // Filter to show only recent outfits (last 30 days)
       final now = DateTime.now();
       final thirtyDaysAgo = now.subtract(const Duration(days: 30));
-      
-      final activeOutfits = outfits.where((outfit) => 
-        outfit.date.isAfter(thirtyDaysAgo)
-      ).toList();
-      
+
+      final activeOutfits = outfits
+          .where((outfit) => outfit.date.isAfter(thirtyDaysAgo))
+          .toList();
+
       return AsyncValue.data(activeOutfits);
     },
     loading: () => const AsyncValue.loading(),
@@ -77,10 +81,12 @@ final activeOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
 });
 
 /// Provider for all clothing items (for outfit creation)
-final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
+final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((
+  ref,
+) async {
   // Wait for repositories to be ready
   await ref.read(repositoriesReadyProvider.future);
-  
+
   final repository = ref.read(clothingItemRepositoryProvider);
   return await repository.getAllClothingItems();
 });
@@ -88,8 +94,10 @@ final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async 
 /// Notifier class for managing outfit operations
 class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
   final HiveOutfitRepository _repository;
+  final Ref _ref;
 
-  OutfitNotifier(this._repository) : super(const AsyncValue.loading()) {
+  OutfitNotifier(this._repository, this._ref)
+    : super(const AsyncValue.loading()) {
     _loadOutfits();
   }
 
@@ -110,6 +118,9 @@ class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
       state = const AsyncValue.loading();
       await _repository.addOutfit(outfit);
       await _loadOutfits();
+      // Invalidate insights providers since outfit changes affect wear counts
+      _ref.invalidate(mostWornClothingItemsProvider);
+      _ref.invalidate(costPerWearRankingProvider);
     } catch (error, _) {
       state = AsyncValue.error(error, StackTrace.current);
     }
@@ -120,6 +131,9 @@ class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
       state = const AsyncValue.loading();
       await _repository.updateOutfit(outfit);
       await _loadOutfits();
+      // Invalidate insights providers since outfit changes affect wear counts
+      _ref.invalidate(mostWornClothingItemsProvider);
+      _ref.invalidate(costPerWearRankingProvider);
     } catch (error, _) {
       state = AsyncValue.error(error, StackTrace.current);
     }
@@ -130,6 +144,9 @@ class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
       state = const AsyncValue.loading();
       await _repository.deleteOutfit(id);
       await _loadOutfits();
+      // Invalidate insights providers since outfit changes affect wear counts
+      _ref.invalidate(mostWornClothingItemsProvider);
+      _ref.invalidate(costPerWearRankingProvider);
     } catch (error, _) {
       state = AsyncValue.error(error, StackTrace.current);
     }

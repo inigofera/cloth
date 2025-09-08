@@ -42,7 +42,9 @@ class HiveOutfitRepository implements OutfitRepository {
       final model = OutfitModel.fromEntity(outfit);
       await _box.put(outfit.id, model);
       await _ensureDataPersistence();
-      LoggerService.info('Outfit updated successfully for date: ${outfit.date}');
+      LoggerService.info(
+        'Outfit updated successfully for date: ${outfit.date}',
+      );
     } catch (e) {
       LoggerService.error('Failed to update outfit: $e');
       rethrow;
@@ -66,7 +68,10 @@ class HiveOutfitRepository implements OutfitRepository {
 
   @override
   Future<List<Outfit>> getAllOutfits() async {
-    return _box.values.map((model) => model.toEntity()).toList();
+    return _box.values
+        .where((model) => model.isActive)
+        .map((model) => model.toEntity())
+        .toList();
   }
 
   @override
@@ -81,27 +86,44 @@ class HiveOutfitRepository implements OutfitRepository {
   Future<List<Outfit>> getOutfitsByDate(DateTime date) async {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
-    
+
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.date.isAfter(startOfDay.subtract(const Duration(milliseconds: 1))) &&
-          model.date.isBefore(endOfDay)
+        .where(
+          (model) =>
+              model.isActive &&
+              model.date.isAfter(
+                startOfDay.subtract(const Duration(milliseconds: 1)),
+              ) &&
+              model.date.isBefore(endOfDay),
         )
         .map((model) => model.toEntity())
         .toList();
   }
 
   @override
-  Future<List<Outfit>> getOutfitsByDateRange(DateTime startDate, DateTime endDate) async {
-    final startOfStartDay = DateTime(startDate.year, startDate.month, startDate.day);
-    final endOfEndDay = DateTime(endDate.year, endDate.month, endDate.day).add(const Duration(days: 1));
-    
+  Future<List<Outfit>> getOutfitsByDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    final startOfStartDay = DateTime(
+      startDate.year,
+      startDate.month,
+      startDate.day,
+    );
+    final endOfEndDay = DateTime(
+      endDate.year,
+      endDate.month,
+      endDate.day,
+    ).add(const Duration(days: 1));
+
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.date.isAfter(startOfStartDay.subtract(const Duration(milliseconds: 1))) &&
-          model.date.isBefore(endOfEndDay)
+        .where(
+          (model) =>
+              model.isActive &&
+              model.date.isAfter(
+                startOfStartDay.subtract(const Duration(milliseconds: 1)),
+              ) &&
+              model.date.isBefore(endOfEndDay),
         )
         .map((model) => model.toEntity())
         .toList();
@@ -110,9 +132,9 @@ class HiveOutfitRepository implements OutfitRepository {
   @override
   Future<List<Outfit>> getOutfitsByClothingItem(String clothingItemId) async {
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.clothingItemIds.contains(clothingItemId)
+        .where(
+          (model) =>
+              model.isActive && model.clothingItemIds.contains(clothingItemId),
         )
         .map((model) => model.toEntity())
         .toList();
@@ -122,10 +144,7 @@ class HiveOutfitRepository implements OutfitRepository {
   Future<List<Outfit>> getRecentOutfits(int days) async {
     final cutoffDate = DateTime.now().subtract(Duration(days: days));
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.date.isAfter(cutoffDate)
-        )
+        .where((model) => model.isActive && model.date.isAfter(cutoffDate))
         .map((model) => model.toEntity())
         .toList();
   }
@@ -138,7 +157,7 @@ class HiveOutfitRepository implements OutfitRepository {
   @override
   Future<Map<String, int>> getClothingItemWearCount() async {
     final Map<String, int> wearCount = {};
-    
+
     for (final model in _box.values) {
       if (model.isActive) {
         for (final clothingItemId in model.clothingItemIds) {
@@ -146,7 +165,7 @@ class HiveOutfitRepository implements OutfitRepository {
         }
       }
     }
-    
+
     return wearCount;
   }
 
@@ -154,12 +173,15 @@ class HiveOutfitRepository implements OutfitRepository {
   Future<List<Outfit>> getOutfitsByMonth(int year, int month) async {
     final startOfMonth = DateTime(year, month, 1);
     final endOfMonth = DateTime(year, month + 1, 1);
-    
+
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.date.isAfter(startOfMonth.subtract(const Duration(milliseconds: 1))) &&
-          model.date.isBefore(endOfMonth)
+        .where(
+          (model) =>
+              model.isActive &&
+              model.date.isAfter(
+                startOfMonth.subtract(const Duration(milliseconds: 1)),
+              ) &&
+              model.date.isBefore(endOfMonth),
         )
         .map((model) => model.toEntity())
         .toList();
@@ -173,7 +195,7 @@ class HiveOutfitRepository implements OutfitRepository {
       LoggerService.error('Failed to flush data to disk: $e');
     }
   }
-  
+
   @override
   Future<void> flush() async {
     await _ensureDataPersistence();
@@ -192,4 +214,3 @@ class HiveOutfitRepository implements OutfitRepository {
     }
   }
 }
-

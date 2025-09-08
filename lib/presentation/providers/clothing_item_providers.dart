@@ -21,7 +21,9 @@ final clothingItemUseCasesProvider = Provider<ClothingItemUseCases>((ref) {
 });
 
 /// Provider for all active clothing items (direct repository call)
-final simpleActiveClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
+final simpleActiveClothingItemsProvider = FutureProvider<List<ClothingItem>>((
+  ref,
+) async {
   try {
     // Direct repository call without use case
     final repository = getIt<ClothingItemRepository>();
@@ -34,7 +36,9 @@ final simpleActiveClothingItemsProvider = FutureProvider<List<ClothingItem>>((re
 });
 
 /// Provider for all clothing items (including inactive)
-final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
+final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((
+  ref,
+) async {
   try {
     // Direct repository call for all items
     final repository = getIt<ClothingItemRepository>();
@@ -47,7 +51,9 @@ final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async 
 });
 
 /// Provider for all active clothing items
-final activeClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
+final activeClothingItemsProvider = FutureProvider<List<ClothingItem>>((
+  ref,
+) async {
   try {
     // Use the new use case that includes wear count
     final useCase = getIt<GetClothingItemsWithWearCountUseCase>();
@@ -61,33 +67,41 @@ final activeClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) asy
 });
 
 /// Provider for clothing items by category
-final clothingItemsByCategoryProvider = FutureProvider.family<List<ClothingItem>, String>((ref, category) async {
-  // Use the new use case that includes wear count
-  final useCase = getIt<GetClothingItemsByCategoryWithWearCountUseCase>();
-  return await useCase.execute(category);
-});
+final clothingItemsByCategoryProvider =
+    FutureProvider.family<List<ClothingItem>, String>((ref, category) async {
+      // Use the new use case that includes wear count
+      final useCase = getIt<GetClothingItemsByCategoryWithWearCountUseCase>();
+      return await useCase.execute(category);
+    });
 
 /// Provider for clothing items by season
-final clothingItemsBySeasonProvider = FutureProvider.family<List<ClothingItem>, String>((ref, season) async {
-  final useCases = ref.read(clothingItemUseCasesProvider);
-  return await useCases.getClothingItemsBySeason.execute(season);
-});
+final clothingItemsBySeasonProvider =
+    FutureProvider.family<List<ClothingItem>, String>((ref, season) async {
+      final useCases = ref.read(clothingItemUseCasesProvider);
+      return await useCases.getClothingItemsBySeason.execute(season);
+    });
 
 /// Provider for clothing item statistics
-final clothingItemStatisticsProvider = FutureProvider<ClothingItemStatistics>((ref) async {
+final clothingItemStatisticsProvider = FutureProvider<ClothingItemStatistics>((
+  ref,
+) async {
   final useCases = ref.read(clothingItemUseCasesProvider);
   return await useCases.getClothingItemStatistics.execute();
 });
 
 /// Provider for unworn clothing items
-final unwornClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
+final unwornClothingItemsProvider = FutureProvider<List<ClothingItem>>((
+  ref,
+) async {
   final useCases = ref.read(clothingItemUseCasesProvider);
   final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
   return await useCases.getUnwornClothingItems.execute(thirtyDaysAgo);
 });
 
 /// Provider for most worn clothing items
-final mostWornClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) async {
+final mostWornClothingItemsProvider = FutureProvider<List<ClothingItem>>((
+  ref,
+) async {
   try {
     // Use the use case that properly calculates wear counts from outfit data
     final useCase = getIt<GetMostWornClothingItemsWithWearCountUseCase>();
@@ -100,30 +114,31 @@ final mostWornClothingItemsProvider = FutureProvider<List<ClothingItem>>((ref) a
 });
 
 /// Provider for clothing items ranked by cost per wear
-final costPerWearRankingProvider = FutureProvider.family<List<ClothingItem>, CostPerWearParams>((ref, params) async {
-  try {
-    final useCase = getIt<GetClothingItemsByCostPerWearUseCase>();
-    final items = await useCase.execute(
-      categories: params.categories,
-      ascending: params.ascending,
-      limit: 10,
-    );
-    return items;
-  } catch (e) {
-    LoggerService.error('Cost per wear ranking provider error: $e');
-    return <ClothingItem>[];
-  }
-});
+final costPerWearRankingProvider =
+    FutureProvider.family<List<ClothingItem>, CostPerWearParams>((
+      ref,
+      params,
+    ) async {
+      try {
+        final useCase = getIt<GetClothingItemsByCostPerWearUseCase>();
+        final items = await useCase.execute(
+          categories: params.categories,
+          ascending: params.ascending,
+          limit: 10,
+        );
+        return items;
+      } catch (e) {
+        LoggerService.error('Cost per wear ranking provider error: $e');
+        return <ClothingItem>[];
+      }
+    });
 
 /// Parameters for cost per wear ranking
 class CostPerWearParams {
   final List<String> categories;
   final bool ascending;
 
-  const CostPerWearParams({
-    required this.categories,
-    required this.ascending,
-  });
+  const CostPerWearParams({required this.categories, required this.ascending});
 
   @override
   bool operator ==(Object other) =>
@@ -135,23 +150,23 @@ class CostPerWearParams {
           ascending == other.ascending;
 
   @override
-  int get hashCode => Object.hash(
-        Object.hashAll(categories),
-        ascending,
-      );
+  int get hashCode => Object.hash(Object.hashAll(categories), ascending);
 }
 
 /// Provider for clothing item search
 final clothingItemSearchProvider = StateProvider<String>((ref) => '');
 
 /// Provider for filtered clothing items based on search
-final filteredClothingItemsProvider = FutureProvider.family<List<ClothingItem>, String>((ref, query) async {
-  final useCases = ref.read(clothingItemUseCasesProvider);
-  return await useCases.searchClothingItems.execute(query);
-});
+final filteredClothingItemsProvider =
+    FutureProvider.family<List<ClothingItem>, String>((ref, query) async {
+      final useCases = ref.read(clothingItemUseCasesProvider);
+      return await useCases.searchClothingItems.execute(query);
+    });
 
 /// Provider for clothing item categories
-final clothingItemCategoriesProvider = FutureProvider<List<String>>((ref) async {
+final clothingItemCategoriesProvider = FutureProvider<List<String>>((
+  ref,
+) async {
   final statistics = await ref.read(clothingItemStatisticsProvider.future);
   return statistics.categories;
 });
@@ -192,14 +207,12 @@ final wearCountRefreshTriggerProvider = StateProvider<int>((ref) => 0);
 
 /// Provider to store the current sorting option for clothing items
 /// This ensures the sorting preference persists across tab switches
-final clothingItemsSortOptionProvider = StateProvider<SortOption>((ref) => SortOption.alphabetical);
+final clothingItemsSortOptionProvider = StateProvider<SortOption>(
+  (ref) => SortOption.alphabetical,
+);
 
 /// Enum for sorting options
-enum SortOption {
-  alphabetical,
-  wearCountAscending,
-  wearCountDescending,
-}
+enum SortOption { alphabetical, wearCountAscending, wearCountDescending }
 
 /// Provider for all active clothing items with wear count that refreshes when triggered
 
@@ -208,7 +221,8 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
   final ClothingItemUseCases _useCases;
   final Ref _ref;
 
-  ClothingItemNotifier(this._useCases, this._ref) : super(const AsyncValue.data(null));
+  ClothingItemNotifier(this._useCases, this._ref)
+    : super(const AsyncValue.data(null));
 
   /// Adds a new clothing item
   Future<void> addClothingItem(ClothingItem item) async {
@@ -220,6 +234,9 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
       _ref.invalidate(activeClothingItemsProvider);
       _ref.invalidate(simpleActiveClothingItemsProvider);
       _ref.invalidate(allClothingItemsProvider);
+      // Invalidate insights providers to refresh insights page
+      _ref.invalidate(mostWornClothingItemsProvider);
+      _ref.invalidate(costPerWearRankingProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -235,6 +252,9 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
       _ref.invalidate(activeClothingItemsProvider);
       _ref.invalidate(simpleActiveClothingItemsProvider);
       _ref.invalidate(allClothingItemsProvider);
+      // Invalidate insights providers to refresh insights page
+      _ref.invalidate(mostWornClothingItemsProvider);
+      _ref.invalidate(costPerWearRankingProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -250,6 +270,9 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
       _ref.invalidate(activeClothingItemsProvider);
       _ref.invalidate(simpleActiveClothingItemsProvider);
       _ref.invalidate(allClothingItemsProvider);
+      // Invalidate insights providers to refresh insights page
+      _ref.invalidate(mostWornClothingItemsProvider);
+      _ref.invalidate(costPerWearRankingProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -257,10 +280,11 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
 }
 
 /// Provider for clothing item notifier
-final clothingItemNotifierProvider = StateNotifierProvider<ClothingItemNotifier, AsyncValue<void>>((ref) {
-  final useCases = ref.read(clothingItemUseCasesProvider);
-  return ClothingItemNotifier(useCases, ref);
-});
+final clothingItemNotifierProvider =
+    StateNotifierProvider<ClothingItemNotifier, AsyncValue<void>>((ref) {
+      final useCases = ref.read(clothingItemUseCasesProvider);
+      return ClothingItemNotifier(useCases, ref);
+    });
 
 /// Convenience class that provides access to all clothing item use cases
 class ClothingItemUseCases {
