@@ -296,13 +296,22 @@ class _AboutSettingsState extends ConsumerState<AboutSettings> {
           child: Text(
             'Your privacy is important to us. This app stores all your data locally on your device. We do not collect, store, or transmit any personal information to external servers.\n\n'
             'The app may use analytics to improve the user experience, but this can be disabled in the Data & Storage settings.\n\n'
-            'For more detailed information, please contact support.',
+            'For the complete privacy policy, please visit our GitHub repository.',
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Close'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _launchUrl(
+                'https://github.com/inigofera/cloth/blob/main/PRIVACY_POLICY.md',
+              );
+            },
+            child: const Text('View Full Policy'),
           ),
         ],
       ),
