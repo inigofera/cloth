@@ -305,11 +305,30 @@ class _AboutSettingsState extends ConsumerState<AboutSettings> {
             child: const Text('Close'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
-              _launchUrl(
+              final Uri url = Uri.parse(
                 'https://github.com/inigofera/cloth/blob/main/PRIVACY_POLICY.md',
               );
+              try {
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Could not open privacy policy page'),
+                      ),
+                    );
+                  }
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error opening privacy policy: $e')),
+                  );
+                }
+              }
             },
             child: const Text('View Full Policy'),
           ),
