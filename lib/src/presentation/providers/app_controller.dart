@@ -26,8 +26,11 @@ class AppState {
 }
 
 /// App controller notifier for managing app-wide state
-class AppController extends StateNotifier<AppState> {
-  AppController() : super(const AppState());
+class AppController extends Notifier<AppState> {
+  @override
+  AppState build() {
+    return const AppState();
+  }
 
   /// Initialize the app - always show welcome screen
   Future<void> initialize() async {
@@ -53,8 +56,8 @@ class AppController extends StateNotifier<AppState> {
 }
 
 /// Provider for app controller
-final appControllerProvider = StateNotifierProvider<AppController, AppState>(
-  (ref) => AppController(),
+final appControllerProvider = NotifierProvider<AppController, AppState>(
+  AppController.new,
 );
 
 /// Convenience providers

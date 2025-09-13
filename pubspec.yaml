@@ -33,7 +33,7 @@ dependencies:
 
 
   # State Management
-  flutter_riverpod: ^2.4.9
+  flutter_riverpod: ^3.0.0
   
   # Local Storage
   hive: ^2.2.3

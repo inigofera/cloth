@@ -28,19 +28,10 @@ final repositoriesReadyProvider = FutureProvider<void>((ref) async {
 
 /// Notifier provider for managing outfit state
 final outfitNotifierProvider =
-    StateNotifierProvider<OutfitNotifier, AsyncValue<List<Outfit>>>((ref) {
-      // Wait for repositories to be ready before creating the notifier
-      ref.watch(repositoriesReadyProvider);
-
-      final repository = ref.watch(outfitRepositoryProvider);
-      return OutfitNotifier(repository, ref);
-    });
+    AsyncNotifierProvider<OutfitNotifier, List<Outfit>>(OutfitNotifier.new);
 
 /// Provider for all outfits (no date filtering)
 final allOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
-  // Wait for repositories to be ready
-  ref.watch(repositoriesReadyProvider);
-
   final outfitsAsync = ref.watch(outfitNotifierProvider);
 
   return outfitsAsync.when(
@@ -58,9 +49,6 @@ final allOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
 
 /// Provider for active outfits (filtered by date range)
 final activeOutfitsProvider = Provider<AsyncValue<List<Outfit>>>((ref) {
-  // Wait for repositories to be ready
-  ref.watch(repositoriesReadyProvider);
-
   final outfitsAsync = ref.watch(outfitNotifierProvider);
 
   return outfitsAsync.when(
@@ -92,67 +80,67 @@ final allClothingItemsProvider = FutureProvider<List<ClothingItem>>((
 });
 
 /// Notifier class for managing outfit operations
-class OutfitNotifier extends StateNotifier<AsyncValue<List<Outfit>>> {
-  final HiveOutfitRepository _repository;
-  final Ref _ref;
-
-  OutfitNotifier(this._repository, this._ref)
-    : super(const AsyncValue.loading()) {
-    _loadOutfits();
-  }
-
-  Future<void> _loadOutfits() async {
+class OutfitNotifier extends AsyncNotifier<List<Outfit>> {
+  @override
+  Future<List<Outfit>> build() async {
+    // Wait for repositories to be ready
+    await ref.read(repositoriesReadyProvider.future);
+    
     try {
-      state = const AsyncValue.loading();
       final outfits = await _repository.getAllOutfits();
       // Always ensure we have a valid list
-      state = AsyncValue.data(outfits);
+      return outfits;
     } catch (error, _) {
       // If there's an error, return empty list instead of error state
-      state = AsyncValue.data(<Outfit>[]);
+      return <Outfit>[];
     }
   }
 
+  HiveOutfitRepository get _repository => ref.read(outfitRepositoryProvider);
+
   Future<void> addOutfit(Outfit outfit) async {
     try {
-      state = const AsyncValue.loading();
       await _repository.addOutfit(outfit);
-      await _loadOutfits();
+      // Refresh the current provider to reload data
+      ref.invalidateSelf();
       // Invalidate insights providers since outfit changes affect wear counts
-      _ref.invalidate(mostWornClothingItemsProvider);
-      _ref.invalidate(costPerWearRankingProvider);
+      ref.invalidate(mostWornClothingItemsProvider);
+      ref.invalidate(costPerWearRankingProvider);
     } catch (error, _) {
-      state = AsyncValue.error(error, StackTrace.current);
+      // Re-throw the error so it can be handled by the UI
+      rethrow;
     }
   }
 
   Future<void> updateOutfit(Outfit outfit) async {
     try {
-      state = const AsyncValue.loading();
       await _repository.updateOutfit(outfit);
-      await _loadOutfits();
+      // Refresh the current provider to reload data
+      ref.invalidateSelf();
       // Invalidate insights providers since outfit changes affect wear counts
-      _ref.invalidate(mostWornClothingItemsProvider);
-      _ref.invalidate(costPerWearRankingProvider);
+      ref.invalidate(mostWornClothingItemsProvider);
+      ref.invalidate(costPerWearRankingProvider);
     } catch (error, _) {
-      state = AsyncValue.error(error, StackTrace.current);
+      // Re-throw the error so it can be handled by the UI
+      rethrow;
     }
   }
 
   Future<void> deleteOutfit(String id) async {
     try {
-      state = const AsyncValue.loading();
       await _repository.deleteOutfit(id);
-      await _loadOutfits();
+      // Refresh the current provider to reload data
+      ref.invalidateSelf();
       // Invalidate insights providers since outfit changes affect wear counts
-      _ref.invalidate(mostWornClothingItemsProvider);
-      _ref.invalidate(costPerWearRankingProvider);
+      ref.invalidate(mostWornClothingItemsProvider);
+      ref.invalidate(costPerWearRankingProvider);
     } catch (error, _) {
-      state = AsyncValue.error(error, StackTrace.current);
+      // Re-throw the error so it can be handled by the UI
+      rethrow;
     }
   }
 
   Future<void> refresh() async {
-    await _loadOutfits();
+    ref.invalidateSelf();
   }
 }

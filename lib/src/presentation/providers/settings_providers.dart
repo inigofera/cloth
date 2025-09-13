@@ -54,8 +54,11 @@ class SettingsState {
 }
 
 /// Settings notifier for managing app settings
-class SettingsNotifier extends StateNotifier<SettingsState> {
-  SettingsNotifier() : super(const SettingsState());
+class SettingsNotifier extends Notifier<SettingsState> {
+  @override
+  SettingsState build() {
+    return const SettingsState();
+  }
 
   void updateDailyReminders(bool value) {
     state = state.copyWith(dailyReminders: value);
@@ -104,8 +107,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 }
 
 /// Provider for settings state
-final settingsProvider = StateNotifierProvider<SettingsNotifier, SettingsState>(
-  (ref) => SettingsNotifier(),
+final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(
+  SettingsNotifier.new,
 );
 
 /// Convenience providers for specific settings

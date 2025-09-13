@@ -154,7 +154,9 @@ class CostPerWearParams {
 }
 
 /// Provider for clothing item search
-final clothingItemSearchProvider = StateProvider<String>((ref) => '');
+final clothingItemSearchProvider = NotifierProvider<ClothingItemSearchNotifier, String>(
+  ClothingItemSearchNotifier.new,
+);
 
 /// Provider for filtered clothing items based on search
 final filteredClothingItemsProvider =
@@ -203,12 +205,14 @@ final totalClothingValueProvider = FutureProvider<double>((ref) async {
 
 /// Simple provider that can be triggered to refresh wear count providers
 /// Increment this value to trigger a refresh
-final wearCountRefreshTriggerProvider = StateProvider<int>((ref) => 0);
+final wearCountRefreshTriggerProvider = NotifierProvider<WearCountRefreshTriggerNotifier, int>(
+  WearCountRefreshTriggerNotifier.new,
+);
 
 /// Provider to store the current sorting option for clothing items
 /// This ensures the sorting preference persists across tab switches
-final clothingItemsSortOptionProvider = StateProvider<SortOption>(
-  (ref) => SortOption.alphabetical,
+final clothingItemsSortOptionProvider = NotifierProvider<ClothingItemsSortOptionNotifier, SortOption>(
+  ClothingItemsSortOptionNotifier.new,
 );
 
 /// Enum for sorting options
@@ -217,12 +221,13 @@ enum SortOption { alphabetical, wearCountAscending, wearCountDescending }
 /// Provider for all active clothing items with wear count that refreshes when triggered
 
 /// Notifier for managing clothing item operations
-class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
-  final ClothingItemUseCases _useCases;
-  final Ref _ref;
+class ClothingItemNotifier extends Notifier<AsyncValue<void>> {
+  @override
+  AsyncValue<void> build() {
+    return const AsyncValue.data(null);
+  }
 
-  ClothingItemNotifier(this._useCases, this._ref)
-    : super(const AsyncValue.data(null));
+  ClothingItemUseCases get _useCases => ref.read(clothingItemUseCasesProvider);
 
   /// Adds a new clothing item
   Future<void> addClothingItem(ClothingItem item) async {
@@ -231,12 +236,12 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
       await _useCases.addClothingItem.execute(item);
       state = const AsyncValue.data(null);
       // Invalidate all relevant providers to refresh the UI
-      _ref.invalidate(activeClothingItemsProvider);
-      _ref.invalidate(simpleActiveClothingItemsProvider);
-      _ref.invalidate(allClothingItemsProvider);
+      ref.invalidate(activeClothingItemsProvider);
+      ref.invalidate(simpleActiveClothingItemsProvider);
+      ref.invalidate(allClothingItemsProvider);
       // Invalidate insights providers to refresh insights page
-      _ref.invalidate(mostWornClothingItemsProvider);
-      _ref.invalidate(costPerWearRankingProvider);
+      ref.invalidate(mostWornClothingItemsProvider);
+      ref.invalidate(costPerWearRankingProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -249,12 +254,12 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
       await _useCases.updateClothingItem.execute(item);
       state = const AsyncValue.data(null);
       // Invalidate all relevant providers to refresh the UI
-      _ref.invalidate(activeClothingItemsProvider);
-      _ref.invalidate(simpleActiveClothingItemsProvider);
-      _ref.invalidate(allClothingItemsProvider);
+      ref.invalidate(activeClothingItemsProvider);
+      ref.invalidate(simpleActiveClothingItemsProvider);
+      ref.invalidate(allClothingItemsProvider);
       // Invalidate insights providers to refresh insights page
-      _ref.invalidate(mostWornClothingItemsProvider);
-      _ref.invalidate(costPerWearRankingProvider);
+      ref.invalidate(mostWornClothingItemsProvider);
+      ref.invalidate(costPerWearRankingProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -267,12 +272,12 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
       await _useCases.deleteClothingItem.execute(id);
       state = const AsyncValue.data(null);
       // Invalidate all relevant providers to refresh the UI
-      _ref.invalidate(activeClothingItemsProvider);
-      _ref.invalidate(simpleActiveClothingItemsProvider);
-      _ref.invalidate(allClothingItemsProvider);
+      ref.invalidate(activeClothingItemsProvider);
+      ref.invalidate(simpleActiveClothingItemsProvider);
+      ref.invalidate(allClothingItemsProvider);
       // Invalidate insights providers to refresh insights page
-      _ref.invalidate(mostWornClothingItemsProvider);
-      _ref.invalidate(costPerWearRankingProvider);
+      ref.invalidate(mostWornClothingItemsProvider);
+      ref.invalidate(costPerWearRankingProvider);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -281,10 +286,7 @@ class ClothingItemNotifier extends StateNotifier<AsyncValue<void>> {
 
 /// Provider for clothing item notifier
 final clothingItemNotifierProvider =
-    StateNotifierProvider<ClothingItemNotifier, AsyncValue<void>>((ref) {
-      final useCases = ref.read(clothingItemUseCasesProvider);
-      return ClothingItemNotifier(useCases, ref);
-    });
+    NotifierProvider<ClothingItemNotifier, AsyncValue<void>>(ClothingItemNotifier.new);
 
 /// Convenience class that provides access to all clothing item use cases
 class ClothingItemUseCases {
@@ -309,4 +311,34 @@ class ClothingItemUseCases {
     required this.getMostWornClothingItems,
     required this.getClothingItemStatistics,
   });
+}
+
+/// Notifier for clothing item search
+class ClothingItemSearchNotifier extends Notifier<String> {
+  @override
+  String build() => '';
+  
+  void updateSearch(String query) {
+    state = query;
+  }
+}
+
+/// Notifier for clothing items sort option
+class ClothingItemsSortOptionNotifier extends Notifier<SortOption> {
+  @override
+  SortOption build() => SortOption.alphabetical;
+  
+  void updateSortOption(SortOption option) {
+    state = option;
+  }
+}
+
+/// Notifier for wear count refresh trigger
+class WearCountRefreshTriggerNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+  
+  void triggerRefresh() {
+    state = state + 1;
+  }
 }
