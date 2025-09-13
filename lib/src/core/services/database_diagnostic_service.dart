@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 import '../../data/models/clothing_item_model.dart';
 import '../../data/models/outfit_model.dart';
 import '../../domain/repositories/clothing_item_repository.dart';
-import '../../core/di/dependency_injection.dart';
+import '../di/dependency_injection.dart';
 import 'logger_service.dart';
 
 /// Service to diagnose database issues and verify data persistence

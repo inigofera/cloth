@@ -5,8 +5,8 @@ import '../../domain/repositories/clothing_item_repository.dart';
 import '../../domain/repositories/outfit_repository.dart';
 import '../../domain/usecases/clothing_item_usecases.dart';
 import '../../domain/usecases/outfit_usecases.dart';
-import '../../core/services/data_persistence_service.dart';
-import '../../core/services/data_deletion_service.dart';
+import '../services/data_persistence_service.dart';
+import '../services/data_deletion_service.dart';
 
 /// Global service locator instance
 final GetIt getIt = GetIt.instance;

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'core/di/dependency_injection.dart';
-import 'core/services/logger_service.dart';
-import 'data/models/clothing_item_model.dart';
-import 'data/models/outfit_model.dart';
-import 'presentation/screens/splash_screen.dart';
+import 'src/core/di/dependency_injection.dart';
+import 'src/core/services/logger_service.dart';
+import 'src/data/models/clothing_item_model.dart';
+import 'src/data/models/outfit_model.dart';
+import 'src/presentation/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/clothing_item_providers.dart';
-import '../providers/settings_providers.dart';
+import '../../providers/clothing_item_providers.dart';
+import '../../providers/settings_providers.dart';
 import '../../domain/entities/clothing_item.dart';
-import '../../../core/utils/currency_formatter.dart';
+import '../../core/utils/currency_formatter.dart';
 import 'add_clothing_item_form.dart';
 import 'clothing_item_thumbnail.dart';
 import 'clothing_item_detail_page.dart';

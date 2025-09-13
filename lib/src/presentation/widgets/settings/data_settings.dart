@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:get_it/get_it.dart';
 import '../../../core/services/data_export_service.dart';
 import '../../../core/services/data_deletion_service.dart';
 import '../../../core/services/logger_service.dart';
