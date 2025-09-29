@@ -5,6 +5,7 @@ import 'src/core/di/dependency_injection.dart';
 import 'src/core/services/logger_service.dart';
 import 'src/data/models/clothing_item_model.dart';
 import 'src/data/models/outfit_model.dart';
+import 'src/domain/repositories/clothing_item_repository.dart';
 import 'src/presentation/screens/splash_screen.dart';
 
 void main() async {
@@ -21,6 +22,15 @@ void main() async {
   try {
     await DependencyInjection.setup();
     LoggerService.info('Dependency injection setup completed successfully');
+
+    // Run category normalization migration
+    try {
+      final repository = getIt<ClothingItemRepository>();
+      await repository.normalizeCategories();
+      LoggerService.info('Category normalization completed');
+    } catch (e) {
+      LoggerService.warning('Category normalization failed: $e');
+    }
   } catch (e) {
     LoggerService.warning('Dependency injection setup failed: $e');
     LoggerService.warning('App will continue but some features may not work');

@@ -57,10 +57,43 @@ class HiveClothingItemRepository implements ClothingItemRepository {
       LoggerService.error('Failed to flush data to disk: $e');
     }
   }
-  
+
   @override
   Future<void> flush() async {
     await _ensureDataPersistence();
+  }
+
+  /// Normalizes all category names to lowercase to fix case inconsistencies
+  Future<void> normalizeCategories() async {
+    try {
+      final allItems = _box.values.toList();
+      bool hasChanges = false;
+
+      for (final model in allItems) {
+        final originalCategory = model.category;
+        final normalizedCategory = originalCategory.toLowerCase();
+
+        if (originalCategory != normalizedCategory) {
+          model.category = normalizedCategory;
+          model.updatedAt = DateTime.now();
+          await _box.put(model.id, model);
+          hasChanges = true;
+          LoggerService.info(
+            'Normalized category: "$originalCategory" -> "$normalizedCategory"',
+          );
+        }
+      }
+
+      if (hasChanges) {
+        await _ensureDataPersistence();
+        LoggerService.info('Category normalization completed');
+      } else {
+        LoggerService.info('No category normalization needed');
+      }
+    } catch (e) {
+      LoggerService.error('Failed to normalize categories: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -96,7 +129,7 @@ class HiveClothingItemRepository implements ClothingItemRepository {
           .where((model) => model.isActive)
           .map((model) => model.toEntity())
           .toList();
-      
+
       return activeItems;
     } catch (e) {
       LoggerService.error('Repository: Error getting active items: $e');
@@ -108,15 +141,21 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   Future<List<ClothingItem>> searchClothingItems(String query) async {
     final lowercaseQuery = query.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          (model.name.toLowerCase().contains(lowercaseQuery) ||
-           model.category.toLowerCase().contains(lowercaseQuery) ||
-           (model.subcategory?.toLowerCase().contains(lowercaseQuery) ?? false) ||
-           (model.brand?.toLowerCase().contains(lowercaseQuery) ?? false) ||
-           (model.color?.toLowerCase().contains(lowercaseQuery) ?? false) ||
-           (model.materials?.toLowerCase().contains(lowercaseQuery) ?? false) ||
-           (model.origin?.toLowerCase().contains(lowercaseQuery) ?? false))
+        .where(
+          (model) =>
+              model.isActive &&
+              (model.name.toLowerCase().contains(lowercaseQuery) ||
+                  model.category.toLowerCase().contains(lowercaseQuery) ||
+                  (model.subcategory?.toLowerCase().contains(lowercaseQuery) ??
+                      false) ||
+                  (model.brand?.toLowerCase().contains(lowercaseQuery) ??
+                      false) ||
+                  (model.color?.toLowerCase().contains(lowercaseQuery) ??
+                      false) ||
+                  (model.materials?.toLowerCase().contains(lowercaseQuery) ??
+                      false) ||
+                  (model.origin?.toLowerCase().contains(lowercaseQuery) ??
+                      false)),
         )
         .map((model) => model.toEntity())
         .toList();
@@ -126,9 +165,10 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   Future<List<ClothingItem>> getClothingItemsByCategory(String category) async {
     final lowercaseCategory = category.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.category.toLowerCase() == lowercaseCategory
+        .where(
+          (model) =>
+              model.isActive &&
+              model.category.toLowerCase() == lowercaseCategory,
         )
         .map((model) => model.toEntity())
         .toList();
@@ -138,10 +178,11 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   Future<List<ClothingItem>> getClothingItemsBySeason(String season) async {
     final lowercaseSeason = season.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          (model.season?.toLowerCase() == lowercaseSeason || 
-           model.season?.toLowerCase() == 'all-season')
+        .where(
+          (model) =>
+              model.isActive &&
+              (model.season?.toLowerCase() == lowercaseSeason ||
+                  model.season?.toLowerCase() == 'all-season'),
         )
         .map((model) => model.toEntity())
         .toList();
@@ -151,9 +192,9 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   Future<List<ClothingItem>> getClothingItemsByBrand(String brand) async {
     final lowercaseBrand = brand.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.brand?.toLowerCase() == lowercaseBrand
+        .where(
+          (model) =>
+              model.isActive && model.brand?.toLowerCase() == lowercaseBrand,
         )
         .map((model) => model.toEntity())
         .toList();
@@ -163,9 +204,9 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   Future<List<ClothingItem>> getClothingItemsByColor(String color) async {
     final lowercaseColor = color.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.color?.toLowerCase() == lowercaseColor
+        .where(
+          (model) =>
+              model.isActive && model.color?.toLowerCase() == lowercaseColor,
         )
         .map((model) => model.toEntity())
         .toList();
@@ -267,11 +308,14 @@ class HiveClothingItemRepository implements ClothingItemRepository {
     DateTime endDate,
   ) async {
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.ownedSince != null &&
-          model.ownedSince!.isAfter(startDate.subtract(const Duration(days: 1))) &&
-          model.ownedSince!.isBefore(endDate.add(const Duration(days: 1)))
+        .where(
+          (model) =>
+              model.isActive &&
+              model.ownedSince != null &&
+              model.ownedSince!.isAfter(
+                startDate.subtract(const Duration(days: 1)),
+              ) &&
+              model.ownedSince!.isBefore(endDate.add(const Duration(days: 1))),
         )
         .map((model) => model.toEntity())
         .toList();
@@ -283,35 +327,43 @@ class HiveClothingItemRepository implements ClothingItemRepository {
     double maxPrice,
   ) async {
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.purchasePrice != null &&
-          model.purchasePrice! >= minPrice &&
-          model.purchasePrice! <= maxPrice
+        .where(
+          (model) =>
+              model.isActive &&
+              model.purchasePrice != null &&
+              model.purchasePrice! >= minPrice &&
+              model.purchasePrice! <= maxPrice,
         )
         .map((model) => model.toEntity())
         .toList();
   }
 
   @override
-  Future<List<ClothingItem>> getClothingItemsBySubcategory(String subcategory) async {
+  Future<List<ClothingItem>> getClothingItemsBySubcategory(
+    String subcategory,
+  ) async {
     final lowercaseSubcategory = subcategory.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.subcategory?.toLowerCase() == lowercaseSubcategory
+        .where(
+          (model) =>
+              model.isActive &&
+              model.subcategory?.toLowerCase() == lowercaseSubcategory,
         )
         .map((model) => model.toEntity())
         .toList();
   }
 
   @override
-  Future<List<ClothingItem>> getClothingItemsByMaterials(String materials) async {
+  Future<List<ClothingItem>> getClothingItemsByMaterials(
+    String materials,
+  ) async {
     final lowercaseMaterials = materials.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.materials?.toLowerCase().contains(lowercaseMaterials) == true
+        .where(
+          (model) =>
+              model.isActive &&
+              model.materials?.toLowerCase().contains(lowercaseMaterials) ==
+                  true,
         )
         .map((model) => model.toEntity())
         .toList();
@@ -321,21 +373,24 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   Future<List<ClothingItem>> getClothingItemsByOrigin(String origin) async {
     final lowercaseOrigin = origin.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.origin?.toLowerCase() == lowercaseOrigin
+        .where(
+          (model) =>
+              model.isActive && model.origin?.toLowerCase() == lowercaseOrigin,
         )
         .map((model) => model.toEntity())
         .toList();
   }
 
   @override
-  Future<List<ClothingItem>> getClothingItemsByLaundryImpact(String laundryImpact) async {
+  Future<List<ClothingItem>> getClothingItemsByLaundryImpact(
+    String laundryImpact,
+  ) async {
     final lowercaseLaundryImpact = laundryImpact.toLowerCase();
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.laundryImpact?.toLowerCase() == lowercaseLaundryImpact
+        .where(
+          (model) =>
+              model.isActive &&
+              model.laundryImpact?.toLowerCase() == lowercaseLaundryImpact,
         )
         .map((model) => model.toEntity())
         .toList();
@@ -344,10 +399,7 @@ class HiveClothingItemRepository implements ClothingItemRepository {
   @override
   Future<List<ClothingItem>> getRepairableClothingItems() async {
     return _box.values
-        .where((model) => 
-          model.isActive && 
-          model.repairable == true
-        )
+        .where((model) => model.isActive && model.repairable == true)
         .map((model) => model.toEntity())
         .toList();
   }

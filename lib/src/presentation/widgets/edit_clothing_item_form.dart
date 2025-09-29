@@ -13,7 +13,8 @@ class EditClothingItemForm extends ConsumerStatefulWidget {
   const EditClothingItemForm({super.key, required this.clothingItem});
 
   @override
-  ConsumerState<EditClothingItemForm> createState() => _EditClothingItemFormState();
+  ConsumerState<EditClothingItemForm> createState() =>
+      _EditClothingItemFormState();
 }
 
 class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
@@ -29,57 +30,127 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
   final _originController = TextEditingController();
   final _laundryImpactController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   late DateTime? _ownedSince;
   late bool _repairable;
   Uint8List? _imageData;
 
-  final List<String> _categories = [
+  final List<String> _baseCategories = [
     'Base Layer',
     'Outerwear',
     'Bottoms',
     'Accessories',
     'Footwear',
+    'Shoes',
     'Formal Wear',
     'Sportswear',
-    'Other'
+    'Other',
   ];
 
-  final List<String> _subcategories = [
-    'T-Shirt', 'Polo', 'Shirt', 'Sweater', 'Hoodie', 'Jacket', 'Coat',
-    'Jeans', 'Pants', 'Shorts', 'Skirt', 'Dress',
-    'Belt', 'Watch', 'Jewelry', 'Scarf', 'Hat', 'Gloves',
-    'Sneakers', 'Boots', 'Shoes', 'Sandals'
+  /// Get the list of categories, including any imported categories
+  List<String> get _categories {
+    final importedCategory = widget.clothingItem.category;
+    if (importedCategory.isNotEmpty) {
+      final normalizedImported = importedCategory.toLowerCase();
+      final normalizedBase = _baseCategories
+          .map((cat) => cat.toLowerCase())
+          .toList();
+
+      if (!normalizedBase.contains(normalizedImported)) {
+        // Add the imported category if it's not already in the list
+        return [..._baseCategories, _capitalizeFirst(importedCategory)];
+      }
+    }
+    return _baseCategories;
+  }
+
+  /// Capitalize the first letter of each word in a string
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
+  final List<String> _baseSubcategories = [
+    'T-Shirt',
+    'Polo',
+    'Shirt',
+    'Sweater',
+    'Hoodie',
+    'Jacket',
+    'Coat',
+    'Jeans',
+    'Pants',
+    'Shorts',
+    'Skirt',
+    'Dress',
+    'Belt',
+    'Watch',
+    'Jewelry',
+    'Scarf',
+    'Hat',
+    'Gloves',
+    'Sneakers',
+    'Boots',
+    'Shoes',
+    'Sandals',
   ];
+
+  /// Get the list of subcategories, including any imported subcategories
+  List<String> get _subcategories {
+    final importedSubcategory = widget.clothingItem.subcategory;
+    if (importedSubcategory != null &&
+        importedSubcategory.isNotEmpty &&
+        !_baseSubcategories.contains(importedSubcategory)) {
+      // Add the imported subcategory if it's not already in the list
+      return [..._baseSubcategories, _capitalizeFirst(importedSubcategory)];
+    }
+    return _baseSubcategories;
+  }
 
   final List<String> _seasons = [
-    'Spring', 'Summer', 'Fall', 'Winter', 'All-Season'
+    'Spring',
+    'Summer',
+    'Fall',
+    'Winter',
+    'All-Season',
   ];
 
   final List<String> _origins = [
-    'Bought New', '2nd Hand', 'Gift', 'Handmade', 'Other'
+    'Bought New',
+    '2nd Hand',
+    'Gift',
+    'Handmade',
+    'Other',
   ];
 
-  final List<String> _laundryImpacts = [
-    'Nothing', 'Low', 'Medium', 'High'
-  ];
+  final List<String> _laundryImpacts = ['Nothing', 'Low', 'Medium', 'High'];
 
   @override
   void initState() {
     super.initState();
     // Initialize controllers with existing values
     _nameController.text = widget.clothingItem.name;
-    _categoryController.text = widget.clothingItem.category;
-    _subcategoryController.text = widget.clothingItem.subcategory ?? '';
+    // Display capitalized version of category for better UX
+    _categoryController.text = _capitalizeFirst(widget.clothingItem.category);
+    _subcategoryController.text = widget.clothingItem.subcategory != null
+        ? _capitalizeFirst(widget.clothingItem.subcategory!)
+        : '';
     _brandController.text = widget.clothingItem.brand ?? '';
     _colorController.text = widget.clothingItem.color ?? '';
     _materialsController.text = widget.clothingItem.materials ?? '';
     _seasonController.text = widget.clothingItem.season ?? '';
-    _purchasePriceController.text = widget.clothingItem.purchasePrice?.toString() ?? '';
+    _purchasePriceController.text =
+        widget.clothingItem.purchasePrice?.toString() ?? '';
     _originController.text = widget.clothingItem.origin ?? '';
     _laundryImpactController.text = widget.clothingItem.laundryImpact ?? '';
     _notesController.text = widget.clothingItem.notes ?? '';
-    
+
     _ownedSince = widget.clothingItem.ownedSince;
     _repairable = widget.clothingItem.repairable ?? true;
     _imageData = widget.clothingItem.imageData;
@@ -101,6 +172,29 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
     super.dispose();
   }
 
+  /// Helper method to get a valid initial value for dropdowns
+  /// Handles case sensitivity and ensures the value exists in the options list
+  String? _getValidInitialValue(String? currentValue, List<String> options) {
+    if (currentValue == null || currentValue.isEmpty) {
+      return null;
+    }
+
+    // First try exact match
+    if (options.contains(currentValue)) {
+      return currentValue;
+    }
+
+    // Try case-insensitive match and return the properly capitalized version
+    for (String option in options) {
+      if (option.toLowerCase() == currentValue.toLowerCase()) {
+        return option;
+      }
+    }
+
+    // If no match found, return null to avoid dropdown error
+    return null;
+  }
+
   Future<void> _selectOwnedSinceDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -120,37 +214,57 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
       try {
         final updatedItem = widget.clothingItem.copyWith(
           name: _nameController.text.trim(),
-          category: _categoryController.text.trim(),
-          subcategory: _subcategoryController.text.trim().isEmpty ? null : _subcategoryController.text.trim(),
-          brand: _brandController.text.trim().isEmpty ? null : _brandController.text.trim(),
-          color: _colorController.text.trim().isEmpty ? null : _colorController.text.trim(),
-          materials: _materialsController.text.trim().isEmpty ? null : _materialsController.text.trim(),
-          season: _seasonController.text.trim().isEmpty ? null : _seasonController.text.trim(),
-          purchasePrice: _purchasePriceController.text.trim().isEmpty 
-              ? null 
+          category: _categoryController.text.trim().toLowerCase(),
+          subcategory: _subcategoryController.text.trim().isEmpty
+              ? null
+              : _capitalizeFirst(_subcategoryController.text.trim()),
+          brand: _brandController.text.trim().isEmpty
+              ? null
+              : _brandController.text.trim(),
+          color: _colorController.text.trim().isEmpty
+              ? null
+              : _colorController.text.trim(),
+          materials: _materialsController.text.trim().isEmpty
+              ? null
+              : _materialsController.text.trim(),
+          season: _seasonController.text.trim().isEmpty
+              ? null
+              : _seasonController.text.trim(),
+          purchasePrice: _purchasePriceController.text.trim().isEmpty
+              ? null
               : double.tryParse(_purchasePriceController.text.trim()),
           ownedSince: _ownedSince,
-          origin: _originController.text.trim().isEmpty ? null : _originController.text.trim(),
-          laundryImpact: _laundryImpactController.text.trim().isEmpty ? null : _laundryImpactController.text.trim(),
+          origin: _originController.text.trim().isEmpty
+              ? null
+              : _originController.text.trim(),
+          laundryImpact: _laundryImpactController.text.trim().isEmpty
+              ? null
+              : _laundryImpactController.text.trim(),
           repairable: _repairable,
-          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          notes: _notesController.text.trim().isEmpty
+              ? null
+              : _notesController.text.trim(),
           imageData: _imageData,
           updatedAt: DateTime.now(),
         );
 
-        await ref.read(clothingItemNotifierProvider.notifier).updateClothingItem(updatedItem);
-        
+        await ref
+            .read(clothingItemNotifierProvider.notifier)
+            .updateClothingItem(updatedItem);
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Clothing item updated successfully!')),
+            const SnackBar(
+              content: Text('Clothing item updated successfully!'),
+            ),
           );
           Navigator.of(context).pop();
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       }
     }
@@ -189,18 +303,18 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
                 labelText: 'Category *',
                 hintText: 'Select category',
               ),
-              initialValue: _categoryController.text.isEmpty ? null : _categoryController.text,
+              initialValue: _getValidInitialValue(
+                _categoryController.text,
+                _categories,
+              ),
               items: _categories.map((category) {
-                return DropdownMenuItem(
-                  value: category,
-                  child: Text(category),
-                );
+                return DropdownMenuItem(value: category, child: Text(category));
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -234,7 +348,10 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
                 labelText: 'Subcategory',
                 hintText: 'Select subcategory (optional)',
               ),
-              initialValue: _subcategoryController.text.isEmpty ? null : _subcategoryController.text,
+              initialValue: _getValidInitialValue(
+                _subcategoryController.text,
+                _subcategories,
+              ),
               items: _subcategories.map((subcategory) {
                 return DropdownMenuItem(
                   value: subcategory,
@@ -281,12 +398,12 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
                 labelText: 'Season',
                 hintText: 'Select season (optional)',
               ),
-              initialValue: _seasonController.text.isEmpty ? null : _seasonController.text,
+              initialValue: _getValidInitialValue(
+                _seasonController.text,
+                _seasons,
+              ),
               items: _seasons.map((season) {
-                return DropdownMenuItem(
-                  value: season,
-                  child: Text(season),
-                );
+                return DropdownMenuItem(value: season, child: Text(season));
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -299,7 +416,9 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
             Consumer(
               builder: (context, ref, child) {
                 final currency = ref.watch(currencyProvider);
-                final currencySymbol = CurrencyFormatter.getCurrencySymbol(currency);
+                final currencySymbol = CurrencyFormatter.getCurrencySymbol(
+                  currency,
+                );
                 return TextFormField(
                   controller: _purchasePriceController,
                   decoration: InputDecoration(
@@ -316,9 +435,11 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
             // Owned Since Date
             ListTile(
               title: const Text('Owned Since'),
-              subtitle: Text(_ownedSince != null 
-                  ? '${_ownedSince!.day}/${_ownedSince!.month}/${_ownedSince!.year}'
-                  : 'Not specified'),
+              subtitle: Text(
+                _ownedSince != null
+                    ? '${_ownedSince!.day}/${_ownedSince!.month}/${_ownedSince!.year}'
+                    : 'Not specified',
+              ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -345,12 +466,12 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
                 labelText: 'Origin',
                 hintText: 'Select origin (optional)',
               ),
-              initialValue: _originController.text.isEmpty ? null : _originController.text,
+              initialValue: _getValidInitialValue(
+                _originController.text,
+                _origins,
+              ),
               items: _origins.map((origin) {
-                return DropdownMenuItem(
-                  value: origin,
-                  child: Text(origin),
-                );
+                return DropdownMenuItem(value: origin, child: Text(origin));
               }).toList(),
               onChanged: (value) {
                 setState(() {
@@ -365,12 +486,12 @@ class _EditClothingItemFormState extends ConsumerState<EditClothingItemForm> {
                 labelText: 'Laundry Impact',
                 hintText: 'Select laundry impact (optional)',
               ),
-              initialValue: _laundryImpactController.text.isEmpty ? null : _laundryImpactController.text,
+              initialValue: _getValidInitialValue(
+                _laundryImpactController.text,
+                _laundryImpacts,
+              ),
               items: _laundryImpacts.map((impact) {
-                return DropdownMenuItem(
-                  value: impact,
-                  child: Text(impact),
-                );
+                return DropdownMenuItem(value: impact, child: Text(impact));
               }).toList(),
               onChanged: (value) {
                 setState(() {

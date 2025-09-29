@@ -17,16 +17,16 @@ class DependencyInjection {
   static Future<void> setup() async {
     // Register repositories
     _registerRepositories();
-    
+
     // Register services
     _registerServices();
-    
+
     // Register use cases
     _registerUseCases();
-    
+
     // Initialize repositories that need async setup
     await initializeRepositories();
-    
+
     // Initialize services that need setup
     await initializeServices();
   }
@@ -37,11 +37,9 @@ class DependencyInjection {
     getIt.registerLazySingleton<ClothingItemRepository>(
       () => HiveClothingItemRepository(),
     );
-    
+
     // Register outfit repository
-    getIt.registerLazySingleton<OutfitRepository>(
-      () => HiveOutfitRepository(),
-    );
+    getIt.registerLazySingleton<OutfitRepository>(() => HiveOutfitRepository());
   }
 
   /// Registers services
@@ -52,7 +50,7 @@ class DependencyInjection {
         getIt<OutfitRepository>(),
       ),
     );
-    
+
     getIt.registerLazySingleton<DataDeletionService>(
       () => DataDeletionService(
         getIt<ClothingItemRepository>(),
@@ -64,9 +62,10 @@ class DependencyInjection {
   /// Initializes all repositories that need async initialization
   static Future<void> initializeRepositories() async {
     // Initialize Hive repositories
-    final clothingItemRepo = getIt<ClothingItemRepository>() as HiveClothingItemRepository;
+    final clothingItemRepo =
+        getIt<ClothingItemRepository>() as HiveClothingItemRepository;
     await clothingItemRepo.initialize();
-    
+
     final outfitRepo = getIt<OutfitRepository>() as HiveOutfitRepository;
     await outfitRepo.initialize();
   }
@@ -77,39 +76,106 @@ class DependencyInjection {
     await dataPersistenceService.initialize();
   }
 
-
   /// Registers use cases
   static void _registerUseCases() {
-    getIt.registerLazySingleton<AddClothingItemUseCase>(() => AddClothingItemUseCase(getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<UpdateClothingItemUseCase>(() => UpdateClothingItemUseCase(getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<DeleteClothingItemUseCase>(() => DeleteClothingItemUseCase(getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<SearchClothingItemsUseCase>(() => SearchClothingItemsUseCase(getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<GetClothingItemsByCategoryUseCase>(() => GetClothingItemsByCategoryUseCase(getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<GetClothingItemsBySeasonUseCase>(() => GetClothingItemsBySeasonUseCase(getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<GetUnwornClothingItemsUseCase>(() => GetUnwornClothingItemsUseCase(getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<GetMostWornClothingItemsUseCase>(() => GetMostWornClothingItemsUseCase(getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<GetClothingItemStatisticsUseCase>(() => GetClothingItemStatisticsUseCase(getIt<ClothingItemRepository>()));
-    
+    getIt.registerLazySingleton<AddClothingItemUseCase>(
+      () => AddClothingItemUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<UpdateClothingItemUseCase>(
+      () => UpdateClothingItemUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<DeleteClothingItemUseCase>(
+      () => DeleteClothingItemUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<SearchClothingItemsUseCase>(
+      () => SearchClothingItemsUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<GetClothingItemsByCategoryUseCase>(
+      () => GetClothingItemsByCategoryUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<GetClothingItemsBySeasonUseCase>(
+      () => GetClothingItemsBySeasonUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<GetUnwornClothingItemsUseCase>(
+      () => GetUnwornClothingItemsUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<GetMostWornClothingItemsUseCase>(
+      () => GetMostWornClothingItemsUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<GetClothingItemStatisticsUseCase>(
+      () => GetClothingItemStatisticsUseCase(getIt<ClothingItemRepository>()),
+    );
+    getIt.registerLazySingleton<NormalizeCategoriesUseCase>(
+      () => NormalizeCategoriesUseCase(getIt<ClothingItemRepository>()),
+    );
+
     // New use cases for wear count
-    getIt.registerLazySingleton<GetClothingItemsWithWearCountUseCase>(() => GetClothingItemsWithWearCountUseCase(getIt<ClothingItemRepository>(), getIt<OutfitRepository>()));
-    getIt.registerLazySingleton<GetClothingItemsByCategoryWithWearCountUseCase>(() => GetClothingItemsByCategoryWithWearCountUseCase(getIt<ClothingItemRepository>(), getIt<OutfitRepository>()));
-    getIt.registerLazySingleton<GetMostWornClothingItemsWithWearCountUseCase>(() => GetMostWornClothingItemsWithWearCountUseCase(getIt<ClothingItemRepository>(), getIt<OutfitRepository>()));
-    getIt.registerLazySingleton<GetClothingItemsByCostPerWearUseCase>(() => GetClothingItemsByCostPerWearUseCase(getIt<ClothingItemRepository>(), getIt<OutfitRepository>()));
+    getIt.registerLazySingleton<GetClothingItemsWithWearCountUseCase>(
+      () => GetClothingItemsWithWearCountUseCase(
+        getIt<ClothingItemRepository>(),
+        getIt<OutfitRepository>(),
+      ),
+    );
+    getIt.registerLazySingleton<GetClothingItemsByCategoryWithWearCountUseCase>(
+      () => GetClothingItemsByCategoryWithWearCountUseCase(
+        getIt<ClothingItemRepository>(),
+        getIt<OutfitRepository>(),
+      ),
+    );
+    getIt.registerLazySingleton<GetMostWornClothingItemsWithWearCountUseCase>(
+      () => GetMostWornClothingItemsWithWearCountUseCase(
+        getIt<ClothingItemRepository>(),
+        getIt<OutfitRepository>(),
+      ),
+    );
+    getIt.registerLazySingleton<GetClothingItemsByCostPerWearUseCase>(
+      () => GetClothingItemsByCostPerWearUseCase(
+        getIt<ClothingItemRepository>(),
+        getIt<OutfitRepository>(),
+      ),
+    );
 
     // Register outfit use cases
-    getIt.registerLazySingleton<AddOutfitUseCase>(() => AddOutfitUseCase(getIt<OutfitRepository>(), getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<UpdateOutfitUseCase>(() => UpdateOutfitUseCase(getIt<OutfitRepository>(), getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<DeleteOutfitUseCase>(() => DeleteOutfitUseCase(getIt<OutfitRepository>(), getIt<ClothingItemRepository>()));
-    getIt.registerLazySingleton<GetOutfitsByDateUseCase>(() => GetOutfitsByDateUseCase(getIt<OutfitRepository>()));
-    getIt.registerLazySingleton<GetOutfitsByDateRangeUseCase>(() => GetOutfitsByDateRangeUseCase(getIt<OutfitRepository>()));
-    getIt.registerLazySingleton<GetRecentOutfitsUseCase>(() => GetRecentOutfitsUseCase(getIt<OutfitRepository>()));
-    getIt.registerLazySingleton<GetOutfitStatisticsUseCase>(() => GetOutfitStatisticsUseCase(getIt<OutfitRepository>()));
-    getIt.registerLazySingleton<GetOutfitsByMonthUseCase>(() => GetOutfitsByMonthUseCase(getIt<OutfitRepository>()));
+    getIt.registerLazySingleton<AddOutfitUseCase>(
+      () => AddOutfitUseCase(
+        getIt<OutfitRepository>(),
+        getIt<ClothingItemRepository>(),
+      ),
+    );
+    getIt.registerLazySingleton<UpdateOutfitUseCase>(
+      () => UpdateOutfitUseCase(
+        getIt<OutfitRepository>(),
+        getIt<ClothingItemRepository>(),
+      ),
+    );
+    getIt.registerLazySingleton<DeleteOutfitUseCase>(
+      () => DeleteOutfitUseCase(
+        getIt<OutfitRepository>(),
+        getIt<ClothingItemRepository>(),
+      ),
+    );
+    getIt.registerLazySingleton<GetOutfitsByDateUseCase>(
+      () => GetOutfitsByDateUseCase(getIt<OutfitRepository>()),
+    );
+    getIt.registerLazySingleton<GetOutfitsByDateRangeUseCase>(
+      () => GetOutfitsByDateRangeUseCase(getIt<OutfitRepository>()),
+    );
+    getIt.registerLazySingleton<GetRecentOutfitsUseCase>(
+      () => GetRecentOutfitsUseCase(getIt<OutfitRepository>()),
+    );
+    getIt.registerLazySingleton<GetOutfitStatisticsUseCase>(
+      () => GetOutfitStatisticsUseCase(getIt<OutfitRepository>()),
+    );
+    getIt.registerLazySingleton<GetOutfitsByMonthUseCase>(
+      () => GetOutfitsByMonthUseCase(getIt<OutfitRepository>()),
+    );
   }
 
   /// Registers a custom repository implementation
   /// This allows for easy swapping of implementations (e.g., cloud vs local)
-  static void registerCustomClothingItemRepository(ClothingItemRepository repository) {
+  static void registerCustomClothingItemRepository(
+    ClothingItemRepository repository,
+  ) {
     getIt.registerSingleton<ClothingItemRepository>(repository);
   }
 

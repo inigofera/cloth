@@ -17,6 +17,7 @@ final clothingItemUseCasesProvider = Provider<ClothingItemUseCases>((ref) {
     getUnwornClothingItems: getIt<GetUnwornClothingItemsUseCase>(),
     getMostWornClothingItems: getIt<GetMostWornClothingItemsUseCase>(),
     getClothingItemStatistics: getIt<GetClothingItemStatisticsUseCase>(),
+    normalizeCategories: getIt<NormalizeCategoriesUseCase>(),
   );
 });
 
@@ -154,9 +155,10 @@ class CostPerWearParams {
 }
 
 /// Provider for clothing item search
-final clothingItemSearchProvider = NotifierProvider<ClothingItemSearchNotifier, String>(
-  ClothingItemSearchNotifier.new,
-);
+final clothingItemSearchProvider =
+    NotifierProvider<ClothingItemSearchNotifier, String>(
+      ClothingItemSearchNotifier.new,
+    );
 
 /// Provider for filtered clothing items based on search
 final filteredClothingItemsProvider =
@@ -205,15 +207,17 @@ final totalClothingValueProvider = FutureProvider<double>((ref) async {
 
 /// Simple provider that can be triggered to refresh wear count providers
 /// Increment this value to trigger a refresh
-final wearCountRefreshTriggerProvider = NotifierProvider<WearCountRefreshTriggerNotifier, int>(
-  WearCountRefreshTriggerNotifier.new,
-);
+final wearCountRefreshTriggerProvider =
+    NotifierProvider<WearCountRefreshTriggerNotifier, int>(
+      WearCountRefreshTriggerNotifier.new,
+    );
 
 /// Provider to store the current sorting option for clothing items
 /// This ensures the sorting preference persists across tab switches
-final clothingItemsSortOptionProvider = NotifierProvider<ClothingItemsSortOptionNotifier, SortOption>(
-  ClothingItemsSortOptionNotifier.new,
-);
+final clothingItemsSortOptionProvider =
+    NotifierProvider<ClothingItemsSortOptionNotifier, SortOption>(
+      ClothingItemsSortOptionNotifier.new,
+    );
 
 /// Enum for sorting options
 enum SortOption { alphabetical, wearCountAscending, wearCountDescending }
@@ -282,11 +286,26 @@ class ClothingItemNotifier extends Notifier<AsyncValue<void>> {
       state = AsyncValue.error(error, stackTrace);
     }
   }
+
+  /// Normalizes all category names to lowercase to fix case inconsistencies
+  Future<void> normalizeCategories() async {
+    try {
+      await _useCases.normalizeCategories.execute();
+      // Invalidate all relevant providers to refresh the UI
+      ref.invalidate(activeClothingItemsProvider);
+      ref.invalidate(simpleActiveClothingItemsProvider);
+      ref.invalidate(allClothingItemsProvider);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
 }
 
 /// Provider for clothing item notifier
 final clothingItemNotifierProvider =
-    NotifierProvider<ClothingItemNotifier, AsyncValue<void>>(ClothingItemNotifier.new);
+    NotifierProvider<ClothingItemNotifier, AsyncValue<void>>(
+      ClothingItemNotifier.new,
+    );
 
 /// Convenience class that provides access to all clothing item use cases
 class ClothingItemUseCases {
@@ -299,6 +318,7 @@ class ClothingItemUseCases {
   final GetUnwornClothingItemsUseCase getUnwornClothingItems;
   final GetMostWornClothingItemsUseCase getMostWornClothingItems;
   final GetClothingItemStatisticsUseCase getClothingItemStatistics;
+  final NormalizeCategoriesUseCase normalizeCategories;
 
   const ClothingItemUseCases({
     required this.addClothingItem,
@@ -310,6 +330,7 @@ class ClothingItemUseCases {
     required this.getUnwornClothingItems,
     required this.getMostWornClothingItems,
     required this.getClothingItemStatistics,
+    required this.normalizeCategories,
   });
 }
 
@@ -317,7 +338,7 @@ class ClothingItemUseCases {
 class ClothingItemSearchNotifier extends Notifier<String> {
   @override
   String build() => '';
-  
+
   void updateSearch(String query) {
     state = query;
   }
@@ -327,7 +348,7 @@ class ClothingItemSearchNotifier extends Notifier<String> {
 class ClothingItemsSortOptionNotifier extends Notifier<SortOption> {
   @override
   SortOption build() => SortOption.alphabetical;
-  
+
   void updateSortOption(SortOption option) {
     state = option;
   }
@@ -337,7 +358,7 @@ class ClothingItemsSortOptionNotifier extends Notifier<SortOption> {
 class WearCountRefreshTriggerNotifier extends Notifier<int> {
   @override
   int build() => 0;
-  
+
   void triggerRefresh() {
     state = state + 1;
   }

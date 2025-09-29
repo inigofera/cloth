@@ -13,23 +13,26 @@ class AddClothingItemUseCase {
     if (item.name.trim().isEmpty) {
       throw ArgumentError('Clothing item name cannot be empty');
     }
-    
+
     if (item.category.trim().isEmpty) {
       throw ArgumentError('Clothing item category cannot be empty');
     }
-    
+
     // Check if item with same name and category already exists
     final existingItems = await _repository.searchClothingItems(item.name);
-    final duplicateExists = existingItems.any((existing) => 
-      existing.name.toLowerCase() == item.name.toLowerCase() && 
-      existing.category.toLowerCase() == item.category.toLowerCase() &&
-      existing.isActive
+    final duplicateExists = existingItems.any(
+      (existing) =>
+          existing.name.toLowerCase() == item.name.toLowerCase() &&
+          existing.category.toLowerCase() == item.category.toLowerCase() &&
+          existing.isActive,
     );
-    
+
     if (duplicateExists) {
-      throw ArgumentError('A clothing item with this name and category already exists');
+      throw ArgumentError(
+        'A clothing item with this name and category already exists',
+      );
     }
-    
+
     await _repository.addClothingItem(item);
   }
 }
@@ -44,11 +47,11 @@ class UpdateClothingItemUseCase {
     if (item.name.trim().isEmpty) {
       throw ArgumentError('Clothing item name cannot be empty');
     }
-    
+
     if (item.category.trim().isEmpty) {
       throw ArgumentError('Clothing item category cannot be empty');
     }
-    
+
     await _repository.updateClothingItem(item);
   }
 }
@@ -74,7 +77,7 @@ class SearchClothingItemsUseCase {
     if (query.trim().isEmpty) {
       return await _repository.getActiveClothingItems();
     }
-    
+
     return await _repository.searchClothingItems(query.trim());
   }
 }
@@ -123,6 +126,17 @@ class GetMostWornClothingItemsUseCase {
   }
 }
 
+/// Use case for normalizing category names to lowercase
+class NormalizeCategoriesUseCase {
+  final ClothingItemRepository _repository;
+
+  const NormalizeCategoriesUseCase(this._repository);
+
+  Future<void> execute() async {
+    await _repository.normalizeCategories();
+  }
+}
+
 /// Use case for getting clothing item statistics
 class GetClothingItemStatisticsUseCase {
   final ClothingItemRepository _repository;
@@ -136,7 +150,7 @@ class GetClothingItemStatisticsUseCase {
     final brands = await _repository.getBrands();
     final colors = await _repository.getColors();
     final seasons = await _repository.getSeasons();
-    
+
     return ClothingItemStatistics(
       totalCount: totalCount,
       totalValue: totalValue,
@@ -179,11 +193,12 @@ class GetClothingItemsWithWearCountUseCase {
 
   Future<List<ClothingItem>> execute() async {
     // Get all active clothing items
-    final clothingItems = await _clothingItemRepository.getActiveClothingItems();
-    
+    final clothingItems = await _clothingItemRepository
+        .getActiveClothingItems();
+
     // Get wear count for all clothing items
     final wearCountMap = await _outfitRepository.getClothingItemWearCount();
-    
+
     // Update clothing items with their wear count
     return clothingItems.map((item) {
       final wearCount = wearCountMap[item.id] ?? 0;
@@ -204,11 +219,12 @@ class GetClothingItemsByCategoryWithWearCountUseCase {
 
   Future<List<ClothingItem>> execute(String category) async {
     // Get clothing items by category
-    final clothingItems = await _clothingItemRepository.getClothingItemsByCategory(category);
-    
+    final clothingItems = await _clothingItemRepository
+        .getClothingItemsByCategory(category);
+
     // Get wear count for all clothing items
     final wearCountMap = await _outfitRepository.getClothingItemWearCount();
-    
+
     // Update clothing items with their wear count
     return clothingItems.map((item) {
       final wearCount = wearCountMap[item.id] ?? 0;
@@ -229,17 +245,18 @@ class GetMostWornClothingItemsWithWearCountUseCase {
 
   Future<List<ClothingItem>> execute({int limit = 10}) async {
     // Get all active clothing items
-    final clothingItems = await _clothingItemRepository.getActiveClothingItems();
-    
+    final clothingItems = await _clothingItemRepository
+        .getActiveClothingItems();
+
     // Get wear count for all clothing items
     final wearCountMap = await _outfitRepository.getClothingItemWearCount();
-    
+
     // Update clothing items with their wear count and sort by wear count
     final itemsWithWearCount = clothingItems.map((item) {
       final wearCount = wearCountMap[item.id] ?? 0;
       return item.copyWith(wearCount: wearCount);
     }).toList();
-    
+
     // Sort by wear count (descending) and take the limit
     itemsWithWearCount.sort((a, b) => b.wearCount.compareTo(a.wearCount));
     return itemsWithWearCount.take(limit).toList();
@@ -262,16 +279,19 @@ class GetClothingItemsByCostPerWearUseCase {
     int limit = 10,
   }) async {
     // Get all active clothing items
-    final allClothingItems = await _clothingItemRepository.getActiveClothingItems();
-    
+    final allClothingItems = await _clothingItemRepository
+        .getActiveClothingItems();
+
     // Filter by selected categories if any are specified
-    final filteredItems = categories.isEmpty 
-        ? allClothingItems 
-        : allClothingItems.where((item) => categories.contains(item.category)).toList();
-    
+    final filteredItems = categories.isEmpty
+        ? allClothingItems
+        : allClothingItems
+              .where((item) => categories.contains(item.category))
+              .toList();
+
     // Get wear count for all clothing items
     final wearCountMap = await _outfitRepository.getClothingItemWearCount();
-    
+
     // Calculate cost per wear and filter out items without price
     final itemsWithPrice = filteredItems
         .where((item) => item.purchasePrice != null && item.purchasePrice! > 0)
@@ -280,7 +300,7 @@ class GetClothingItemsByCostPerWearUseCase {
           return item.copyWith(wearCount: wearCount);
         })
         .toList();
-    
+
     // For items with 0 wear count, assign a default wear count of 1 to allow cost per wear calculation
     // This helps during development when there are no outfits yet
     final itemsWithAdjustedWearCount = itemsWithPrice.map((item) {
@@ -289,19 +309,19 @@ class GetClothingItemsByCostPerWearUseCase {
       }
       return item;
     }).toList();
-    
+
     // Sort by cost per wear
     itemsWithAdjustedWearCount.sort((a, b) {
       final costPerWearA = a.purchasePrice! / a.wearCount;
       final costPerWearB = b.purchasePrice! / b.wearCount;
-      
+
       if (ascending) {
         return costPerWearA.compareTo(costPerWearB);
       } else {
         return costPerWearB.compareTo(costPerWearA);
       }
     });
-    
+
     // Return the top items based on limit
     return itemsWithAdjustedWearCount.take(limit).toList();
   }
